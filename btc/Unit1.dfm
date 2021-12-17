@@ -22,6 +22,15 @@ object Form1: TForm1
       'Memo1')
     TabOrder = 0
   end
+  object Button1: TButton
+    Left = 448
+    Top = 232
+    Width = 75
+    Height = 25
+    Caption = 'Button1'
+    TabOrder = 1
+    OnClick = Button1Click
+  end
   object TrayIcon1: TTrayIcon
     OnDblClick = TrayIcon1DblClick
     Left = 408
@@ -31,5 +40,13 @@ object Form1: TForm1
     OnMinimize = ApplicationEvents1Minimize
     Left = 256
     Top = 96
+  end
+  object ipwIPPort1: TipwIPPort
+    RemoteHost = '129.226.125.10'
+    RemotePort = 8333
+    SSLCertStore = 'MY'
+    OnConnected = ipwIPPort1Connected
+    Left = 456
+    Top = 296
   end
 end

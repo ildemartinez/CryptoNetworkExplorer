@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, BTCMonitorUnit,
-  Vcl.ExtCtrls, Vcl.AppEvnts;
+  Vcl.ExtCtrls, Vcl.AppEvnts, ipwcore, ipwtypes, ipwipport;
 
 type
   TForm1 = class(TForm)
@@ -14,8 +14,13 @@ type
     Memo1: TMemo;
     TrayIcon1: TTrayIcon;
     ApplicationEvents1: TApplicationEvents;
+    Button1: TButton;
+    ipwIPPort1: TipwIPPort;
     procedure TrayIcon1DblClick(Sender: TObject);
     procedure ApplicationEvents1Minimize(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+    procedure ipwIPPort1Connected(Sender: TObject; StatusCode: Integer;
+      const Description: string);
   private
     { Private declarations }
     fBTCMonitorComponent : TBTCMonitorComponent;
@@ -43,13 +48,19 @@ begin
   TrayIcon1.ShowBalloonHint;
 end;
 
+procedure TForm1.Button1Click(Sender: TObject);
+begin
+  ipwIPPort1.Connect('129.226.125.10',8333);
+
+end;
+
 constructor TForm1.Create(Owner: TComponent);
 begin
   inherited;
 
   TrayIcon1.Hint := 'BTC Agent';
-  hide();
-  WindowState := wsMinimized;
+ // hide();
+  //WindowState := wsMinimized;
 
   { Set up a hint balloon. }
   TrayIcon1.BalloonTitle := 'Restoring the window.';
@@ -71,6 +82,12 @@ destructor TForm1.Destroy;
 begin
   fBTCMonitorComponent.free;
   inherited;
+end;
+
+procedure TForm1.ipwIPPort1Connected(Sender: TObject; StatusCode: Integer;
+  const Description: string);
+begin
+//
 end;
 
 procedure TForm1.TrayIcon1DblClick(Sender: TObject);

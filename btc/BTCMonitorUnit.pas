@@ -24,13 +24,14 @@ type
 
 implementation
 
-{ TBTCMonitorComponent }
+uses
+  dialogs;
 
 constructor TBTCMonitorComponent.Create(Owner: TComponent);
 begin
   inherited;
 
-  fMaxConnections := 3;
+  fMaxConnections := 1;
 
   fConnectionsPool := TObjectList<TBTCThreadMonitor>.Create;
   fConnectionsPool.OwnsObjects := true;
@@ -55,8 +56,11 @@ end;
 procedure TBTCMonitorComponent.Response(Sender: TObject; Peer: String);
 begin
   // Create just MaxConnections
-  while fConnectionsPool.Count < MaxConnections do
-    fConnectionsPool.Add(TBTCThreadMonitor.Create());
+
+  if fConnectionsPool.Count < MaxConnections then
+  begin
+    fConnectionsPool.Add(TBTCThreadMonitor.Create(Peer));
+  end;
 end;
 
 end.
