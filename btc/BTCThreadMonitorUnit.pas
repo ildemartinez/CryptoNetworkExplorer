@@ -86,8 +86,9 @@ end;
 procedure TBTCThreadMonitor.DataIn(Sender: TObject; Text: String; TextB: TBytes;
   EOL: Boolean);
 var
-  k: Integer;
+  k, kk: Integer;
   status: Integer;
+  amessage: string;
 begin
 
   k := 0;
@@ -110,7 +111,41 @@ begin
           inc(status);
       4:
         begin
-          showmessage('packeeet');
+          amessage := '';
+
+          for kk := k to k + 11 do
+            amessage := amessage + char(TextB[kk]);
+
+          showmessage(amessage);
+
+          k := kk;
+
+          inc(status);
+        end;
+      5:
+        begin
+           amessage := '';
+
+          for kk := k to k + 3 do
+            amessage := amessage + char(TextB[kk]);
+
+         // showmessage(amessage);
+
+          k := kk;
+
+          status := 0;
+        end;
+      6:
+        begin
+           amessage := '';
+
+          for kk := k to k + 3 do
+            amessage := amessage + char(TextB[kk]);
+
+          //showmessage(amessage);
+
+          k := kk;
+
           status := 0;
         end;
 

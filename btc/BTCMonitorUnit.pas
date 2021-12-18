@@ -31,7 +31,7 @@ constructor TBTCMonitorComponent.Create(Owner: TComponent);
 begin
   inherited;
 
-  fMaxConnections := 1;
+  fMaxConnections := 15;
 
   fConnectionsPool := TObjectList<TBTCThreadMonitor>.Create;
   fConnectionsPool.OwnsObjects := true;
