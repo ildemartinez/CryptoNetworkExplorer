@@ -19,19 +19,21 @@ type
     constructor Create(Owner: TComponent); override;
     destructor Destroy; override;
 
+    procedure PrintMessage(const am : string);
+
     property MaxConnections: integer read fMaxConnections write fMaxConnections;
   end;
 
 implementation
 
 uses
-  dialogs;
+  dialogs, unit1;
 
 constructor TBTCMonitorComponent.Create(Owner: TComponent);
 begin
   inherited;
 
-  fMaxConnections := 15;
+  fMaxConnections := 1;
 
   fConnectionsPool := TObjectList<TBTCThreadMonitor>.Create;
   fConnectionsPool.OwnsObjects := true;
@@ -53,13 +55,18 @@ begin
   inherited;
 end;
 
+procedure TBTCMonitorComponent.PrintMessage(const am: string);
+begin
+  TForm1(self.owner).PrintMessage(am);
+end;
+
 procedure TBTCMonitorComponent.Response(Sender: TObject; Peer: String);
 begin
   // Create just MaxConnections
 
   if fConnectionsPool.Count < MaxConnections then
   begin
-    fConnectionsPool.Add(TBTCThreadMonitor.Create(Peer));
+    fConnectionsPool.Add(TBTCThreadMonitor.Create(Peer,self));
   end;
 end;
 

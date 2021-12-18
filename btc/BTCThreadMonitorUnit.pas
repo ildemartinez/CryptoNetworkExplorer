@@ -4,12 +4,16 @@ interface
 
 uses
   System.SysUtils, Winapi.Windows, Winapi.Messages,
-  classes, dialogs, ipwcore, ipwtypes, ipwipport;
+  classes, dialogs, ipwcore, ipwtypes, ipwipport, BTCTypes;
 
 type
 
+
+
   TBTCThreadMonitor = class(TThread)
   strict private
+    fparent: tcomponent;
+
     ipwIPPort1: TipwIPPort;
     fPeer: string;
   strict protected
@@ -25,17 +29,15 @@ type
     procedure ReadyToSend(Sender: TObject);
     procedure Error(Sender: TObject; ErrorCode: Integer;
       const Description: string);
+
+    procedure DoMessageDetected(const aHeader: THeader);
+
   public
-    constructor Create(const Peer: string);
+    constructor Create(const Peer: string; parent: tcomponent);
     destructor Destroy; override;
   end;
 
-  Header = record
-    start_string: uint32;
-    command_name: array [1 .. 12] of byte;
-    payload_size: uint32;
-    checksum: uint32;
-  end;
+
 
   Net_addr = record
     services: int64;
@@ -51,6 +53,9 @@ type
   end;
 
 implementation
+
+uses
+  BTCMonitorUnit;
 
 function StringBytesToTBytes(const s: string): TBytes;
 var
@@ -68,10 +73,11 @@ begin
   // showmessage(ConnectionEvent);
 end;
 
-constructor TBTCThreadMonitor.Create(const Peer: string);
+constructor TBTCThreadMonitor.Create(const Peer: string; parent: tcomponent);
 begin
   inherited Create;
 
+  fparent := parent;
   fPeer := Peer;
 
   ipwIPPort1 := TipwIPPort.Create(nil);
@@ -86,9 +92,14 @@ end;
 procedure TBTCThreadMonitor.DataIn(Sender: TObject; Text: String; TextB: TBytes;
   EOL: Boolean);
 var
-  k, kk: Integer;
+  k, j: Integer;
   status: Integer;
   amessage: string;
+  alength, checksum: cardinal;
+  payload : TBytes;
+  ppayload : ^byte;
+  aHeader : THeader;
+  command : string;
 begin
 
   k := 0;
@@ -97,6 +108,7 @@ begin
   while k < length(TextB) do
   begin
     case status of
+      // magic code detection
       0:
         if TextB[k] = $F9 then
           inc(status);
@@ -109,43 +121,52 @@ begin
       3:
         if TextB[k] = $D9 then
           inc(status);
+      // command detection
       4:
         begin
           amessage := '';
 
-          for kk := k to k + 11 do
-            amessage := amessage + char(TextB[kk]);
+          j := 0;
+          while (j < 12) and (TextB[j + k] <> 0) do
+          begin
+            amessage := amessage + char(TextB[k + j]);
+            inc(j);
+          end;
 
-          showmessage(amessage);
+          // showmessage(amessage + ' ' + inttostr(amessage.length));
 
-          k := kk;
+          k := k + 11;
 
           inc(status);
         end;
+      // length detection
       5:
         begin
-           amessage := '';
 
-          for kk := k to k + 3 do
-            amessage := amessage + char(TextB[kk]);
+          alength := TextB[k] + TextB[k + 1] + TextB[k + 2] + TextB[k + 3];
 
-         // showmessage(amessage);
+          /// ojo, solo el primer byte... añadir los siguientes
 
-          k := kk;
+          // showmessage(inttostr(alength));
 
-          status := 0;
+          k := k + 3;
+
+          inc(status);
         end;
+      // checksum detection
       6:
         begin
-           amessage := '';
 
-          for kk := k to k + 3 do
-            amessage := amessage + char(TextB[kk]);
+          /// Please get checksum
+          checksum := TextB[k] + TextB[k + 1] + TextB[k + 2] + TextB[k + 3];
 
-          //showmessage(amessage);
+          k := k + 3;
 
-          k := kk;
+          setlength(payload,alength);
+          CopyMemory(payload, @TextB[k], alength);
 
+
+          DoMessageDetected(BuildHeader(amessage));
           status := 0;
         end;
 
@@ -164,8 +185,17 @@ begin
   inherited;
 end;
 
+procedure TBTCThreadMonitor.DoMessageDetected(const aHeader : THeader);
+begin
+  Synchronize(
+    procedure
+    begin
+      TBTCMonitorComponent(fparent).PrintMessage(fPeer+' '+aHeader.command_name);
+    end)
+end;
+
 procedure TBTCThreadMonitor.Error(Sender: TObject; ErrorCode: Integer;
-  const Description: string);
+const Description: string);
 begin
 
 end;
@@ -178,37 +208,39 @@ begin
 end;
 
 procedure TBTCThreadMonitor.ipwIPPort1Connected(Sender: TObject;
-  StatusCode: Integer; const Description: string);
+StatusCode: Integer; const Description: string);
 begin
 end;
 
 procedure TBTCThreadMonitor.ReadyToSend(Sender: TObject);
 var
   tb: TBytes;
-  pHeader: ^Header;
-  C: string;
+  pHeader: ^THeader;
+  aHeader : THeader;
 begin
-  new(pHeader);
+  aHeader := BuildHeader('version');
+
+  (*new(pHeader);
   pHeader^.start_string := $D9B4BEF9;
 
-  pHeader^.command_name[1] := $76;
-  pHeader^.command_name[2] := $65;
-  pHeader^.command_name[3] := $72;
-  pHeader^.command_name[4] := $73;
-  pHeader^.command_name[5] := $69;
-  pHeader^.command_name[6] := $6F;
-  pHeader^.command_name[7] := $6E;
-  pHeader^.command_name[8] := 0;
-  pHeader^.command_name[9] := 0;
-  pHeader^.command_name[10] := 0;
-  pHeader^.command_name[11] := 0;
-  pHeader^.command_name[12] := 0;
+  pHeader^.command_name[1] := 'v';
+  pHeader^.command_name[2] := 'e';
+  pHeader^.command_name[3] := 'r';
+  pHeader^.command_name[4] := 's';
+  pHeader^.command_name[5] := 'i';
+  pHeader^.command_name[6] := 'o';
+  pHeader^.command_name[7] := 'n';
+  pHeader^.command_name[8] := char(0);
+  pHeader^.command_name[9] := char(0);
+  pHeader^.command_name[10] := char(0);
+  pHeader^.command_name[11] := char(0);
+  pHeader^.command_name[12] := char(0);
 
   pHeader^.payload_size := $66;
   pHeader^.checksum := $9B3DBA94;
-
-  SetLength(tb, sizeof(Header));
-  CopyMemory(tb, pHeader, sizeof(Header));
+                                            *)
+  SetLength(tb, sizeof(THeader));
+  CopyMemory(tb, @aHeader, sizeof(THeader));
 
   // showmessage(Description);
   // tb := StringBytesToTBytes('f9beb4d976657273696f6e00000000006600000094ba3d9b');

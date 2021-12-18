@@ -105,6 +105,7 @@
         <DCCReference Include="BTCPeerUnit.pas"/>
         <DCCReference Include="BTCMonitorUnit.pas"/>
         <DCCReference Include="BTCThreadMonitorUnit.pas"/>
+        <DCCReference Include="BTCTypes.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

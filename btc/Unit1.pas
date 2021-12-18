@@ -14,13 +14,9 @@ type
     Memo1: TMemo;
     TrayIcon1: TTrayIcon;
     ApplicationEvents1: TApplicationEvents;
-    Button1: TButton;
-    ipwIPPort1: TipwIPPort;
     procedure TrayIcon1DblClick(Sender: TObject);
     procedure ApplicationEvents1Minimize(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
-    procedure ipwIPPort1Connected(Sender: TObject; StatusCode: Integer;
-      const Description: string);
+
   private
     { Private declarations }
     fBTCMonitorComponent : TBTCMonitorComponent;
@@ -28,6 +24,8 @@ type
     { Public declarations }
     constructor Create(Owner: TComponent); override;
     destructor Destroy; override;
+
+    procedure PrintMessage(const am : string);
   end;
 
 var
@@ -48,11 +46,6 @@ begin
   TrayIcon1.ShowBalloonHint;
 end;
 
-procedure TForm1.Button1Click(Sender: TObject);
-begin
-  ipwIPPort1.Connect('129.226.125.10',8333);
-
-end;
 
 constructor TForm1.Create(Owner: TComponent);
 begin
@@ -84,10 +77,9 @@ begin
   inherited;
 end;
 
-procedure TForm1.ipwIPPort1Connected(Sender: TObject; StatusCode: Integer;
-  const Description: string);
+procedure TForm1.PrintMessage(const am: string);
 begin
-//
+  memo1.lines.add(am);
 end;
 
 procedure TForm1.TrayIcon1DblClick(Sender: TObject);

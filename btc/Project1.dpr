@@ -5,7 +5,8 @@ uses
   Unit1 in 'Unit1.pas' {Form1},
   BTCPeerUnit in 'BTCPeerUnit.pas',
   BTCMonitorUnit in 'BTCMonitorUnit.pas',
-  BTCThreadMonitorUnit in 'BTCThreadMonitorUnit.pas';
+  BTCThreadMonitorUnit in 'BTCThreadMonitorUnit.pas',
+  BTCTypes in 'BTCTypes.pas';
 
 {$R *.res}
 
