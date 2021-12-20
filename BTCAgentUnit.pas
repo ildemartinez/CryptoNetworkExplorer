@@ -7,7 +7,8 @@ uses
 
 type
 
-  TMessageEventVersion = procedure(Sender: TObject) of object;
+  TMessageEventVersion = procedure(Sender: TObject; versionMessage: TVersion)
+    of object;
   TMessageEventVerack = procedure(Sender: TObject) of object;
 
   TMessageEvent = procedure(Sender: TObject; const aMessage: string) of Object;
@@ -42,6 +43,7 @@ type
     destructor Destroy; override;
 
     procedure Connect;
+    procedure Disconnect;
   published
     property PeerIp: string read GetPeerIP write SetPeerIP;
 
@@ -59,7 +61,7 @@ procedure Register;
 implementation
 
 uses
-  Winapi.Windows, dialogs;
+  Winapi.Windows;
 
 function StringBytesToTBytes(const s: string): TBytes;
 var
@@ -77,6 +79,7 @@ end;
 
 procedure TBTCAgent.Connect;
 begin
+
   fipwIPPort1.Connect(self.fIP, 8333);
 end;
 
@@ -115,9 +118,6 @@ var
   aMessage: string;
   alength, checksum: cardinal;
   payload: TBytes;
-  ppayload: ^byte;
-  aHeader: THeader;
-  command: string;
 begin
 
   k := 0;
@@ -162,7 +162,7 @@ begin
         begin
 
           alength := TextB[k] + TextB[k + 1] + TextB[k + 2] + TextB[k + 3];
-
+          SetLength(payload, alength);
           /// ojo, solo el primer byte... añadir los siguientes
 
           // showmessage(inttostr(alength));
@@ -178,10 +178,20 @@ begin
           /// Please get checksum
           checksum := TextB[k] + TextB[k + 1] + TextB[k + 2] + TextB[k + 3];
 
-          k := k + 3;
+          k := k + 4;
 
-          SetLength(payload, alength);
-          CopyMemory(payload, @TextB[k], alength);
+          if (alength = 0) then
+          begin
+            CopyMemory(payload, @TextB[k], alength);
+            DoMessageDetected(aMessage, payload);
+            status := 0;
+          end
+          else
+            inc(status)
+        end;
+      7:
+        begin
+          CopyMemory(payload, @TextB[k - 1], alength);
 
           DoMessageDetected(aMessage, payload);
           status := 0;
@@ -206,23 +216,33 @@ begin
   inherited;
 end;
 
+procedure TBTCAgent.Disconnect;
+begin
+  fipwIPPort1.Disconnect;
+
+end;
+
 procedure TBTCAgent.DoMessageDetected(const aMessageType: string;
   const apayload: TBytes);
+var
+  versionMessage: TVersion;
+  pversionMessage: ^TVersion;
 begin
   if aMessageType = MESSAGE_TYPE_VERSION then
   begin
-    showmessage(length(apayload).ToString);
+    // Create the version message
+    pversionMessage := @versionMessage;
+    CopyMemory(pversionMessage, apayload, length(apayload));
 
     if assigned(fMessageVersionEvent) then
-      fMessageVersionEvent(self);
+      fMessageVersionEvent(self, versionMessage);
   end
   else if aMessageType = MESSAGE_TYPE_VERACK then
   begin
     if assigned(fMessageVerackEvent) then
       fMessageVerackEvent(self);
-  end;
-
-  if assigned(fMessage) then
+  end
+  else if assigned(fMessage) then
     fMessage(self, aMessageType);
 end;
 
@@ -272,12 +292,11 @@ begin
   // tb := StringBytesToTBytes('9c');
   fipwIPPort1.send(tb);
 
-  tb := StringBytesToTBytes
-    ('80110100'+'0804000000000000'+'0defbc6100000000090400000000000000000000000000000000ffff23c121bf208d0804000000000000000000000000000000000000000000000000fdba00e1964f2006102f5361746f7368693a32322e302e302f25c2030001');
+  tb := StringBytesToTBytes('80110100' + '0804000000000000' +
+    '0defbc6100000000090400000000000000000000000000000000ffff23c121bf208d0804000000000000000000000000000000000000000000000000fdba00e1964f2006102f5361746f7368693a32322e302e302f25c2030001');
   fipwIPPort1.send(tb);
 
 end;
-
 
 procedure TBTCAgent.SetPeerIP(const Value: string);
 begin

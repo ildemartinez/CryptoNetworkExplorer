@@ -28,7 +28,8 @@ package CryptoCurrencyComponents;
 {$IMPLICITBUILD ON}
 
 requires
-  rtl;
+  rtl,
+  vcl;
 
 contains
   BTCAgentUnit in 'BTCAgentUnit.pas',

@@ -20,8 +20,6 @@ object Form1: TForm1
     Height = 384
     Align = alBottom
     TabOrder = 0
-    ExplicitLeft = -8
-    ExplicitTop = 128
   end
   object Button1: TButton
     Left = 168
