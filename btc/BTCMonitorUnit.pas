@@ -19,15 +19,13 @@ type
     constructor Create(Owner: TComponent); override;
     destructor Destroy; override;
 
-    procedure PrintMessage(const am : string);
-
     property MaxConnections: integer read fMaxConnections write fMaxConnections;
   end;
 
 implementation
 
 uses
-  dialogs, unit1;
+  dialogs;
 
 constructor TBTCMonitorComponent.Create(Owner: TComponent);
 begin
@@ -53,11 +51,6 @@ begin
   fBTCPeerComponent.free;
 
   inherited;
-end;
-
-procedure TBTCMonitorComponent.PrintMessage(const am: string);
-begin
-  TForm1(self.owner).PrintMessage(am);
 end;
 
 procedure TBTCMonitorComponent.Response(Sender: TObject; Peer: String);

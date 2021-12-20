@@ -8,8 +8,6 @@ uses
 
 type
 
-
-
   TBTCThreadMonitor = class(TThread)
   strict private
     fparent: tcomponent;
@@ -190,7 +188,7 @@ begin
   Synchronize(
     procedure
     begin
-      TBTCMonitorComponent(fparent).PrintMessage(fPeer+' '+aHeader.command_name);
+//      TBTCMonitorComponent(fparent).PrintMessage(fPeer+' '+aHeader.command_name);
     end)
 end;
 
@@ -252,5 +250,6 @@ begin
   ipwIPPort1.send(tb);
 
 end;
+
 
 end.

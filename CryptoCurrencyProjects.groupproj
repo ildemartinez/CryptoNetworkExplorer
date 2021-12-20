@@ -1,0 +1,48 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{69BA1B00-42E8-488F-BA12-48DB4A037EE8}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="CryptoCurrencyComponents.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="CryptoLab.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="CryptoCurrencyComponents">
+        <MSBuild Projects="CryptoCurrencyComponents.dproj"/>
+    </Target>
+    <Target Name="CryptoCurrencyComponents:Clean">
+        <MSBuild Projects="CryptoCurrencyComponents.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="CryptoCurrencyComponents:Make">
+        <MSBuild Projects="CryptoCurrencyComponents.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="CryptoLab">
+        <MSBuild Projects="CryptoLab.dproj"/>
+    </Target>
+    <Target Name="CryptoLab:Clean">
+        <MSBuild Projects="CryptoLab.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="CryptoLab:Make">
+        <MSBuild Projects="CryptoLab.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="CryptoCurrencyComponents;CryptoLab"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="CryptoCurrencyComponents:Clean;CryptoLab:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="CryptoCurrencyComponents:Make;CryptoLab:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

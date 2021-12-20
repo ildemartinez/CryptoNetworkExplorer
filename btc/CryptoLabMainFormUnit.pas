@@ -1,12 +1,13 @@
-unit Unit1;
+unit CryptoLabMainFormUnit;
 
 interface
 
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, BTCMonitorUnit,
-  Vcl.ExtCtrls, Vcl.AppEvnts, ipwcore, ipwtypes, ipwipport;
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
+  Vcl.ExtCtrls, Vcl.AppEvnts,
+  BTCPeerDiscoveryUnit, BTCAgentUnit;
 
 type
   TForm1 = class(TForm)
@@ -14,18 +15,24 @@ type
     Memo1: TMemo;
     TrayIcon1: TTrayIcon;
     ApplicationEvents1: TApplicationEvents;
+    Button1: TButton;
+    BTCPeerDiscovery1: TBTCPeerDiscovery;
+    BTCAgent1: TBTCAgent;
     procedure TrayIcon1DblClick(Sender: TObject);
     procedure ApplicationEvents1Minimize(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+    procedure BTCPeerDiscovery1Response(Sender: TObject; Peer: string);
+    procedure BTCAgent1Message(Sender: TObject; const aMessage: string);
+    procedure BTCAgent1VersionMessage(Sender: TObject);
+    procedure BTCAgent1VerackMessage(Sender: TObject);
+
 
   private
     { Private declarations }
-    fBTCMonitorComponent : TBTCMonitorComponent;
   public
     { Public declarations }
     constructor Create(Owner: TComponent); override;
     destructor Destroy; override;
-
-    procedure PrintMessage(const am : string);
   end;
 
 var
@@ -47,13 +54,42 @@ begin
 end;
 
 
+procedure TForm1.BTCAgent1Message(Sender: TObject; const aMessage: string);
+begin
+    Memo1.Lines.add(aMessage);
+end;
+
+procedure TForm1.BTCAgent1VerackMessage(Sender: TObject);
+begin
+  Memo1.lines.add('verack');
+end;
+
+procedure TForm1.BTCAgent1VersionMessage(Sender: TObject);
+begin
+Memo1.lines.add('version');
+end;
+
+procedure TForm1.BTCPeerDiscovery1Response(Sender: TObject; Peer: string);
+begin
+  Memo1.lines.add(Peer);
+
+  // solamente pasamos el último
+  BTCAgent1.PeerIp := Peer;
+  self.BTCAgent1.connect;
+end;
+
+procedure TForm1.Button1Click(Sender: TObject);
+begin
+  BTCPeerDiscovery1.Discover;
+end;
+
 constructor TForm1.Create(Owner: TComponent);
 begin
   inherited;
 
   TrayIcon1.Hint := 'BTC Agent';
- // hide();
-  //WindowState := wsMinimized;
+  // hide();
+  // WindowState := wsMinimized;
 
   { Set up a hint balloon. }
   TrayIcon1.BalloonTitle := 'Restoring the window.';
@@ -67,19 +103,12 @@ begin
   TrayIcon1.Animate := True;
   TrayIcon1.ShowBalloonHint;
 
-  fBTCMonitorComponent :=TBTCMonitorComponent.Create(self);
-
 end;
 
 destructor TForm1.Destroy;
 begin
-  fBTCMonitorComponent.free;
-  inherited;
-end;
 
-procedure TForm1.PrintMessage(const am: string);
-begin
-  memo1.lines.add(am);
+  inherited;
 end;
 
 procedure TForm1.TrayIcon1DblClick(Sender: TObject);
