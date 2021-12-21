@@ -15,14 +15,28 @@ type
     checksum: uint32;
   end;
 
-  TVersion = record
+  TVersionRawMessage = record
     protocol_version: uint32;
-    body: array [1 .. 16] of byte;
-    body2: array [1 .. 26] of byte;
-    body3: array [1 .. 26] of byte;
-    body4: array [1 .. 8] of byte;
-    body5: array [1 .. 16] of byte;
+    node_services: array [1 .. 8] of byte;
+    node_timestamp: array [1 .. 8] of byte;
+    receiving_node_ip: array [1 .. 24] of byte;
+    receiving_node_port: uint16;
+    emmiting_node_ip: array [1 .. 24] of byte;
+    emmiting_node_port: uint16;
+    random_nonce: array [1 .. 8] of byte;
+    user_agent: array [0 .. 16] of byte;
     body6: array [1 .. 4] of byte;
+  end;
+
+  TVersionMessage = record
+    protocol_version: uint32;
+    node_services: uint32;
+    node_timestamp: TDateTime;
+    receiving_node_ip: string;
+    receiving_node_port: uint16;
+    emmiting_node_ip: string;
+    emmiting_node_port: uint16;
+    user_agent : string;
   end;
 
 function BuildHeader(const command: string): THeader;

@@ -98,16 +98,11 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <DCCReference Include="btc\CryptoLabMainFormUnit.pas">
+        <DCCReference Include="CryptoLabMainFormUnit.pas">
             <Form>Form1</Form>
             <FormType>dfm</FormType>
         </DCCReference>
-        <DCCReference Include="btc\BTCPeerUnit.pas"/>
-        <DCCReference Include="btc\BTCMonitorUnit.pas"/>
-        <DCCReference Include="btc\BTCThreadMonitorUnit.pas"/>
-        <DCCReference Include="btc\BTCTypes.pas"/>
-        <DCCReference Include="BTCAgentUnit.pas"/>
-        <DCCReference Include="BTCPeerDiscoveryUnit.pas"/>
+        <DCCReference Include="ISubjectUnit.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

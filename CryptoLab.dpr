@@ -2,13 +2,8 @@ program CryptoLab;
 
 uses
   Vcl.Forms,
-  CryptoLabMainFormUnit in 'btc\CryptoLabMainFormUnit.pas' {Form1},
-  BTCPeerUnit in 'btc\BTCPeerUnit.pas',
-  BTCMonitorUnit in 'btc\BTCMonitorUnit.pas',
-  BTCThreadMonitorUnit in 'btc\BTCThreadMonitorUnit.pas',
-  BTCTypes in 'btc\BTCTypes.pas',
-  BTCAgentUnit in 'BTCAgentUnit.pas',
-  BTCPeerDiscoveryUnit in 'BTCPeerDiscoveryUnit.pas';
+  CryptoLabMainFormUnit in 'CryptoLabMainFormUnit.pas' {Form1},
+  ISubjectUnit in 'ISubjectUnit.pas';
 
 {$R *.res}
 

@@ -29,12 +29,14 @@ package CryptoCurrencyComponents;
 
 requires
   rtl,
-  vcl;
+  vcl,
+  VirtualTreesR;
 
 contains
   BTCAgentUnit in 'BTCAgentUnit.pas',
   BTCPeerDiscoveryUnit in 'BTCPeerDiscoveryUnit.pas',
   BTCNetworkUnit in 'BTCNetworkUnit.pas',
-  BTCTypes in 'BTCTypes.pas';
+  BTCTypes in 'BTCTypes.pas',
+  CryptoNetworkTreeViewUnit in 'CryptoNetworkTreeViewUnit.pas';
 
 end.

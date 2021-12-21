@@ -7,7 +7,8 @@ uses
   System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
   Vcl.ExtCtrls, Vcl.AppEvnts,
-  BTCPeerDiscoveryUnit, BTCAgentUnit, BTCTypes;
+  BTCPeerDiscoveryUnit, BTCAgentUnit, BTCTypes, VirtualTrees, btcnetworkunit,
+  CryptoNetworkTreeViewUnit, Data.DB, Vcl.DBCtrls;
 
 type
   TForm1 = class(TForm)
@@ -16,20 +17,20 @@ type
     TrayIcon1: TTrayIcon;
     ApplicationEvents1: TApplicationEvents;
     Button1: TButton;
-    BTCPeerDiscovery1: TBTCPeerDiscovery;
-    BTCAgent1: TBTCAgent;
+
     procedure TrayIcon1DblClick(Sender: TObject);
     procedure ApplicationEvents1Minimize(Sender: TObject);
     procedure Button1Click(Sender: TObject);
-    procedure BTCPeerDiscovery1Response(Sender: TObject; Peer: string);
     procedure BTCAgent1Message(Sender: TObject; const aMessage: string);
     procedure BTCAgent1VerackMessage(Sender: TObject);
-    procedure BTCAgent1VersionMessage(Sender: TObject;
-      versionMessage: TVersion);
-
 
   private
     { Private declarations }
+    fCryptoNetworkTreeView1: TCryptoNetworkTreeView;
+    fCryptoNetwork: TBTCNetwork;
+  strict protected
+    procedure OnVersionMessge(Sender: TObject; versionMessage: TVersionMessage);
+
   public
     { Public declarations }
     constructor Create(Owner: TComponent); override;
@@ -54,42 +55,35 @@ begin
   TrayIcon1.ShowBalloonHint;
 end;
 
-
 procedure TForm1.BTCAgent1Message(Sender: TObject; const aMessage: string);
 begin
-   Memo1.Lines.add('Left to implement ->'+aMessage);
+  Memo1.Lines.add('Left to implement ->' + aMessage);
 end;
 
 procedure TForm1.BTCAgent1VerackMessage(Sender: TObject);
 begin
-  Memo1.lines.add('verack');
-end;
-
-procedure TForm1.BTCAgent1VersionMessage(Sender: TObject;
-  versionMessage: TVersion);
-begin
-
-  memo1.Lines.add('version :'+versionMessage.protocol_version.ToString);
-end;
-
-procedure TForm1.BTCPeerDiscovery1Response(Sender: TObject; Peer: string);
-begin
-  Memo1.lines.add(Peer);
-
-  // solamente pasamos el último
-  self.BTCAgent1.disconnect;
-  BTCAgent1.PeerIp := Peer;
-  self.BTCAgent1.connect;
+  Memo1.Lines.add('verack');
 end;
 
 procedure TForm1.Button1Click(Sender: TObject);
 begin
-  BTCPeerDiscovery1.Discover;
+  fCryptoNetwork.connect;
+
+  fCryptoNetworkTreeView1.CryptoNetwork := fCryptoNetwork;
 end;
 
 constructor TForm1.Create(Owner: TComponent);
 begin
   inherited;
+
+  fCryptoNetwork := TBTCNetwork.Create(self);
+  fCryptoNetwork.MaxPeers := 10;
+  fCryptoNetwork.OnVersionMessage := OnVersionMessge;
+
+  fCryptoNetworkTreeView1 := TCryptoNetworkTreeView.Create(self);
+  fCryptoNetworkTreeView1.Parent := self;
+  fCryptoNetworkTreeView1.Align := alleft;
+  fCryptoNetworkTreeView1.CryptoNetwork := self.fCryptoNetwork;
 
   TrayIcon1.Hint := 'BTC Agent';
   // hide();
@@ -113,6 +107,21 @@ destructor TForm1.Destroy;
 begin
 
   inherited;
+end;
+
+procedure TForm1.OnVersionMessge(Sender: TObject;
+  versionMessage: TVersionMessage);
+begin
+  Memo1.Lines.add('version :' + versionMessage.protocol_version.ToString);
+  Memo1.Lines.add('NodeServices :' + versionMessage.node_services.ToString);
+  Memo1.Lines.add('TimeStamp :' + DateTimeToStr(versionMessage.node_timestamp));
+  Memo1.Lines.add('Receiving ip: ' + versionMessage.receiving_node_ip);
+  Memo1.Lines.add('Port: ' + versionMessage.receiving_node_port.ToString);
+
+  Memo1.Lines.add('Emmiting ip: ' + versionMessage.emmiting_node_ip);
+  Memo1.Lines.add('Port: ' + versionMessage.emmiting_node_port.ToString);
+
+  Memo1.Lines.add('User agent: ' + versionMessage.user_agent);
 end;
 
 procedure TForm1.TrayIcon1DblClick(Sender: TObject);

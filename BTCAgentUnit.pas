@@ -7,8 +7,8 @@ uses
 
 type
 
-  TMessageEventVersion = procedure(Sender: TObject; versionMessage: TVersion)
-    of object;
+  TMessageEventVersion = procedure(Sender: TObject;
+    versionMessage: TVersionMessage) of object;
   TMessageEventVerack = procedure(Sender: TObject) of object;
 
   TMessageEvent = procedure(Sender: TObject; const aMessage: string) of Object;
@@ -61,7 +61,7 @@ procedure Register;
 implementation
 
 uses
-  Winapi.Windows;
+  Winapi.Windows, dateutils, dialogs;
 
 function StringBytesToTBytes(const s: string): TBytes;
 var
@@ -225,8 +225,12 @@ end;
 procedure TBTCAgent.DoMessageDetected(const aMessageType: string;
   const apayload: TBytes);
 var
-  versionMessage: TVersion;
-  pversionMessage: ^TVersion;
+  versionMessage: TVersionRawMessage;
+  pversionMessage: ^TVersionRawMessage;
+  aVersionMessage: TVersionMessage;
+  t: UInt64;
+  aDate: TDatetime;
+  k: Integer;
 begin
   if aMessageType = MESSAGE_TYPE_VERSION then
   begin
@@ -234,8 +238,25 @@ begin
     pversionMessage := @versionMessage;
     CopyMemory(pversionMessage, apayload, length(apayload));
 
+    aVersionMessage.protocol_version := versionMessage.protocol_version;
+    aVersionMessage.node_services := UInt64(versionMessage.node_services);
+    aVersionMessage.node_timestamp := TTimeZone.Local.ToLocalTime
+      (unixtodatetime(UInt64(versionMessage.node_timestamp)));
+
+    aVersionMessage.receiving_node_ip := '....';
+    aVersionMessage.receiving_node_port :=
+      swap(versionMessage.receiving_node_port);
+
+    aVersionMessage.emmiting_node_ip := '..-..';
+    aVersionMessage.emmiting_node_port :=
+      swap(versionMessage.emmiting_node_port);
+
+    aVersionMessage.user_agent := '';
+    for k := 1 to VersionMessage.user_agent[0] do
+      aVersionMessage.user_agent := aVersionMessage.user_agent + char(VersionMessage.user_agent[k]);
+
     if assigned(fMessageVersionEvent) then
-      fMessageVersionEvent(self, versionMessage);
+      fMessageVersionEvent(self, aVersionMessage);
   end
   else if aMessageType = MESSAGE_TYPE_VERACK then
   begin

@@ -14,16 +14,16 @@ object Form1: TForm1
   PixelsPerInch = 96
   TextHeight = 13
   object Memo1: TMemo
-    Left = 0
-    Top = 168
-    Width = 844
-    Height = 384
-    Align = alBottom
+    Left = 460
+    Top = 0
+    Width = 384
+    Height = 552
+    Align = alRight
     TabOrder = 0
   end
   object Button1: TButton
-    Left = 168
-    Top = 40
+    Left = 320
+    Top = 80
     Width = 75
     Height = 25
     Caption = 'Button1'
@@ -39,18 +39,5 @@ object Form1: TForm1
     OnMinimize = ApplicationEvents1Minimize
     Left = 528
     Top = 8
-  end
-  object BTCPeerDiscovery1: TBTCPeerDiscovery
-    MaxPeers = 1
-    OnResponse = BTCPeerDiscovery1Response
-    Left = 64
-    Top = 40
-  end
-  object BTCAgent1: TBTCAgent
-    OnMessage = BTCAgent1Message
-    OnVersionMessage = BTCAgent1VersionMessage
-    OnVerackMessage = BTCAgent1VerackMessage
-    Left = 296
-    Top = 48
   end
 end
