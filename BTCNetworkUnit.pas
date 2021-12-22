@@ -4,15 +4,16 @@ interface
 
 uses
   classes, Generics.Collections,
-  BTCPeerDiscoveryUnit, BTCAgentUnit, BTCTypes, ISubjectUnit;
+  BTCPeerDiscoveryUnit, BTCTypes, ISubjectUnit, BTCPeerNodeUnit,
+  NodeObserverPattern;
 
 type
-  TBTCNetwork = class(TComponent, ISubject)
+  TBTCNetwork = class(TComponent, ISubject, INodeObserver)
   strict private
-    fObserverList: Tlist<iobserver>;
+    fObserverList: Tlist<INetworkObserver>;
 
     fBTCPeerDiscovery: TBTCPeerDiscovery;
-    fBTCAgents: Tlist<TBTCAgent>;
+    fBTCAgents: Tlist<TBTCPeerNode>;
     fMaxPeers: cardinal;
 
     function GetMaxPeers: cardinal;
@@ -24,18 +25,21 @@ type
   private
     fMessageVersionEvent: TMessageEventVersion;
     function getcount: cardinal;
-    function GetNodes(index: integer): TBTCAgent;
+    function GetNodes(index: integer): TBTCPeerNode;
 
   public
+    procedure AttachToSubject(aINodeSubject: INodeSubject);
+    procedure NodeConnected(aNode: string);
 
-    procedure RegisterObserver(aObserver: iobserver);
-    procedure NotifyNewBTCAgent(const aBTCAgent: TBTCAgent);
+    procedure RegisterObserver(aObserver: INetworkObserver);
+    procedure NotifyNewBTCAgent(const aBTCAgent: TBTCPeerNode);
+    procedure NotifyNodeConnected(const aBTCAgent: TBTCPeerNode);
 
     constructor Create(Owner: TComponent); override;
     destructor Destroy; override;
 
     procedure connect;
-    property Nodes[index: integer]: TBTCAgent read GetNodes;
+    property Nodes[index: integer]: TBTCPeerNode read GetNodes;
   published
     property MaxPeers: cardinal read GetMaxPeers write SetMaxPeers;
     property count: cardinal read getcount;
@@ -56,6 +60,11 @@ end;
 
 { TBTCNetwork }
 
+procedure TBTCNetwork.AttachToSubject(aINodeSubject: INodeSubject);
+begin
+
+end;
+
 procedure TBTCNetwork.connect;
 begin
   fBTCPeerDiscovery.Discover;
@@ -65,12 +74,12 @@ constructor TBTCNetwork.Create(Owner: TComponent);
 begin
   inherited;
 
-  fObserverList := Tlist<iobserver>.Create;
+  fObserverList := Tlist<INetworkObserver>.Create;
 
   fBTCPeerDiscovery := TBTCPeerDiscovery.Create(self);
   fBTCPeerDiscovery.OnResponse := OnDiscovered;
 
-  fBTCAgents := Tlist<TBTCAgent>.Create;
+  fBTCAgents := Tlist<TBTCPeerNode>.Create;
 end;
 
 destructor TBTCNetwork.Destroy;
@@ -102,14 +111,19 @@ begin
   result := fBTCPeerDiscovery.MaxPeers;
 end;
 
-function TBTCNetwork.GetNodes(index: integer): TBTCAgent;
+function TBTCNetwork.GetNodes(index: integer): TBTCPeerNode;
 begin
   result := self.fBTCAgents[index];
 end;
 
-procedure TBTCNetwork.NotifyNewBTCAgent(const aBTCAgent: TBTCAgent);
+procedure TBTCNetwork.NodeConnected;
+begin
+
+end;
+
+procedure TBTCNetwork.NotifyNewBTCAgent(const aBTCAgent: TBTCPeerNode);
 var
-  aObserver: iobserver;
+  aObserver: INetworkObserver;
 begin
   for aObserver in fObserverList do
   begin
@@ -117,9 +131,19 @@ begin
   end;
 end;
 
+procedure TBTCNetwork.NotifyNodeConnected(const aBTCAgent: TBTCPeerNode);
+var
+  aObserver: INetworkObserver;
+begin
+  for aObserver in fObserverList do
+  begin
+    aObserver.NodeConnected(aBTCAgent);
+  end;
+end;
+
 procedure TBTCNetwork.OnDiscovered(Sender: TObject; Peer: string);
 var
-  aBTCAgent: TBTCAgent;
+  aBTCAgent: TBTCPeerNode;
   k: integer;
   exists: boolean;
 begin
@@ -136,9 +160,12 @@ begin
 
   if not exists then
   begin
-    aBTCAgent := TBTCAgent.Create(self);
+    aBTCAgent := TBTCPeerNode.Create(self);
     aBTCAgent.OnVersionMessage := DoVersionMessage;
     aBTCAgent.PeerIp := Peer;
+
+    AttachObserverToSubject(self,aBTCAgent);
+//    aBTCAgent.NodeSubject.RegisterObserver(self);
 
     fBTCAgents.Add(aBTCAgent);
 
@@ -148,9 +175,10 @@ begin
   end;
 end;
 
-procedure TBTCNetwork.RegisterObserver(aObserver: iobserver);
+procedure TBTCNetwork.RegisterObserver(aObserver: INetworkObserver);
 begin
-  fObserverList.Add(aObserver);
+  if fObserverList.IndexOf(aObserver) < 0 then
+    fObserverList.Add(aObserver);
 end;
 
 procedure TBTCNetwork.SetMaxPeers(const Value: cardinal);

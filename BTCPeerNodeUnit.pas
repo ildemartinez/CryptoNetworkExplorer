@@ -1,9 +1,13 @@
-unit BTCAgentUnit;
+unit BTCPeerNodeUnit;
 
 interface
 
 uses
-  System.SysUtils, System.Classes, ipwcore, ipwtypes, ipwipport, btctypes;
+  System.SysUtils, System.Classes,
+  System.Generics.Collections,
+  IPeerNodeUnit,
+  NodeObserverPattern,
+  ipwcore, ipwtypes, ipwipport, btctypes;
 
 type
 
@@ -13,7 +17,7 @@ type
 
   TMessageEvent = procedure(Sender: TObject; const aMessage: string) of Object;
 
-  TBTCAgent = class(TComponent)
+  TBTCPeerNode = class(TComponent, IPeerNode, INodeSubject)
   strict private
     fIP: string;
     fipwIPPort1: TipwIPPort;
@@ -26,8 +30,9 @@ type
   private
     fMessageVersionEvent: TMessageEventVersion;
     fMessageVerackEvent: TMessageEventVerack;
+    fNodeSubject: TNodeSubject;
 
-    procedure Connected(Sender: TObject; StatusCode: Integer;
+    procedure Connected2(Sender: TObject; StatusCode: Integer;
       const Description: String);
     procedure DataIn(Sender: TObject; Text: String; TextB: TBytes;
       EOL: Boolean);
@@ -39,12 +44,18 @@ type
 
     procedure DoMessageDetected(const aMessageType: string;
       const apayload: TBytes);
+    property NodeSubject: TNodeSubject read fNodeSubject write fNodeSubject
+      implements INodeSubject;
   public
     constructor Create(OWner: TComponent); override;
     destructor Destroy; override;
 
     procedure Connect;
     procedure Disconnect;
+
+    // IPeerNode
+    function Connected: Boolean;
+
   published
     property PeerIp: string read GetPeerIP write SetPeerIP;
     property UserAgent: string read fUserAgent;
@@ -76,34 +87,41 @@ end;
 
 procedure Register;
 begin
-  RegisterComponents('CryptoCurrency', [TBTCAgent]);
+  RegisterComponents('CryptoCurrency', [TBTCPeerNode]);
 end;
 
-procedure TBTCAgent.Connect;
+procedure TBTCPeerNode.Connect;
 begin
-
   fipwIPPort1.Connect(self.fIP, 8333);
 end;
 
-procedure TBTCAgent.Connected(Sender: TObject; StatusCode: Integer;
+procedure TBTCPeerNode.Connected2(Sender: TObject; StatusCode: Integer;
   const Description: String);
 begin
 
 end;
 
-procedure TBTCAgent.ConnectionStatus(Sender: TObject;
+function TBTCPeerNode.Connected: Boolean;
+begin
+
+end;
+
+procedure TBTCPeerNode.ConnectionStatus(Sender: TObject;
   const ConnectionEvent: string; StatusCode: Integer;
   const Description: string);
 begin
 
 end;
 
-constructor TBTCAgent.Create(OWner: TComponent);
+constructor TBTCPeerNode.Create(OWner: TComponent);
 begin
   inherited;
 
+  fNodeSubject := TNodeSubject.Create;
+
   fipwIPPort1 := TipwIPPort.Create(self);
-  fipwIPPort1.OnConnected := Connected;
+  fipwIPPort1.OnConnected := Connected2;
+  // conectado al nodo pero no al protocolo
   fipwIPPort1.OnDataIn := DataIn;
   fipwIPPort1.OnConnectionStatus := ConnectionStatus;
   fipwIPPort1.OnReadyToSend := ReadyToSend;
@@ -112,7 +130,7 @@ begin
   // aBTCThreadMonitor :=  TBTCThreadMonitor.Create(fIp,self);
 end;
 
-procedure TBTCAgent.DataIn(Sender: TObject; Text: String; TextB: TBytes;
+procedure TBTCPeerNode.DataIn(Sender: TObject; Text: String; TextB: TBytes;
   EOL: Boolean);
 var
   k, j: Integer;
@@ -207,7 +225,7 @@ begin
 
 end;
 
-destructor TBTCAgent.Destroy;
+destructor TBTCPeerNode.Destroy;
 begin
 
   if fipwIPPort1.Connected then
@@ -218,13 +236,13 @@ begin
   inherited;
 end;
 
-procedure TBTCAgent.Disconnect;
+procedure TBTCPeerNode.Disconnect;
 begin
   fipwIPPort1.Disconnect;
 
 end;
 
-procedure TBTCAgent.DoMessageDetected(const aMessageType: string;
+procedure TBTCPeerNode.DoMessageDetected(const aMessageType: string;
   const apayload: TBytes);
 var
   versionMessage: TVersionRawMessage;
@@ -233,6 +251,9 @@ var
   t: UInt64;
   aDate: TDatetime;
   k: Integer;
+
+  aObserver: INodeObserver;
+
 begin
   if aMessageType = MESSAGE_TYPE_VERSION then
   begin
@@ -262,6 +283,12 @@ begin
 
     if assigned(fMessageVersionEvent) then
       fMessageVersionEvent(self, aVersionMessage);
+
+    NodeSubject.Notify(self.PeerIp);
+    { *    for aObserver in fObserverList do
+      begin
+      aObserver.NodeConnected(self.PeerIp);
+      end;* }
   end
   else if aMessageType = MESSAGE_TYPE_VERACK then
   begin
@@ -272,18 +299,18 @@ begin
     fMessage(self, aMessageType);
 end;
 
-procedure TBTCAgent.Error(Sender: TObject; ErrorCode: Integer;
+procedure TBTCPeerNode.Error(Sender: TObject; ErrorCode: Integer;
   const Description: string);
 begin
 
 end;
 
-function TBTCAgent.GetPeerIP: string;
+function TBTCPeerNode.GetPeerIP: string;
 begin
   result := fIP;
 end;
 
-procedure TBTCAgent.ReadyToSend(Sender: TObject);
+procedure TBTCPeerNode.ReadyToSend(Sender: TObject);
 var
   tb: TBytes;
   pHeader: ^THeader;
@@ -324,7 +351,7 @@ begin
 
 end;
 
-procedure TBTCAgent.SetPeerIP(const Value: string);
+procedure TBTCPeerNode.SetPeerIP(const Value: string);
 begin
   fIP := Value;
 end;

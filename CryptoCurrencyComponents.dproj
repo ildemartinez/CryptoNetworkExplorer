@@ -88,7 +88,7 @@
         <DCCReference Include="rtl.dcp"/>
         <DCCReference Include="vcl.dcp"/>
         <DCCReference Include="VirtualTreesR.dcp"/>
-        <DCCReference Include="BTCAgentUnit.pas"/>
+        <DCCReference Include="BTCPeerNodeUnit.pas"/>
         <DCCReference Include="BTCPeerDiscoveryUnit.pas"/>
         <DCCReference Include="BTCNetworkUnit.pas"/>
         <DCCReference Include="BTCTypes.pas"/>

@@ -33,7 +33,7 @@ requires
   VirtualTreesR;
 
 contains
-  BTCAgentUnit in 'BTCAgentUnit.pas',
+  BTCPeerNodeUnit in 'BTCPeerNodeUnit.pas',
   BTCPeerDiscoveryUnit in 'BTCPeerDiscoveryUnit.pas',
   BTCNetworkUnit in 'BTCNetworkUnit.pas',
   BTCTypes in 'BTCTypes.pas',

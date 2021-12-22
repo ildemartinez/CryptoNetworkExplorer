@@ -3,8 +3,9 @@ unit CryptoNetworkTreeViewUnit;
 interface
 
 uses
-  System.SysUtils, System.Classes,
-  BTCNetworkUnit, isubjectunit, BTCAgentUnit,
+  System.SysUtils, System.Classes, System.Types, vcl.Menus,
+  BTCNetworkUnit, isubjectunit, BTCPeerNodeUnit, CryptoNetworkPopupMenuUnit,
+  NodeObserverPattern,
   VirtualTrees;
 
 type
@@ -13,15 +14,17 @@ type
 
   TTreeData = record
     node_type: TNodeTypes;
-    nodedata : TBTCAgent;
+    nodedata: TBTCPeerNode;
     Text: String;
   end;
 
   PTreeData = ^TTreeData; // This is a node example.
 
-  TCryptoNetworkTreeView = class(TCustomVirtualStringTree, IObserver)
+  TCryptoNetworkTreeView = class(TCustomVirtualStringTree, INetworkObserver,
+    INodeObserver)
   private
     fCryptonetwork: TBTCNetwork;
+    fPopupMenu: TCryptoNetworkPopupMenu;
     procedure setCryptoNetwork(const Value: TBTCNetwork);
 
     procedure Notification(AComponent: TComponent;
@@ -30,7 +33,12 @@ type
   protected
     procedure DoInitNode(Parent, Node: PVirtualNode;
       var InitStates: TVirtualNodeInitStates); override;
+    procedure MenuItemClick(Sender: TObject);
+    procedure DoGetPopupmenu(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex; const P: TPoint; var AskParent: Boolean;
+      var PopupMenu: TPopupMenu);
 
+    procedure NodeDblClick(Sender: TBaseVirtualTree; const HitInfo: THitInfo);
     procedure DoGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
     procedure DoInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
@@ -38,7 +46,13 @@ type
   public
     constructor Create(Owner: TComponent); override;
 
-    procedure NewBTCAgentAdded(aBTCAgent: TBTCAgent);
+    // I
+    procedure NewBTCAgentAdded(aBTCAgent: TBTCPeerNode);
+    procedure NodeConnected(aBTCAgent: TBTCPeerNode); overload;
+
+    // I
+    procedure NodeConnected(aNode: string); overload;
+    procedure AttachToSubject(aINodeSubject: INodeSubject);
   published
     property CryptoNetwork: TBTCNetwork read fCryptonetwork
       write setCryptoNetwork;
@@ -49,7 +63,7 @@ procedure Register;
 implementation
 
 uses
-dialogs;
+  dialogs, NodeFormUnit;
 
 procedure Register;
 begin
@@ -58,16 +72,54 @@ end;
 
 { TCryptoNetworkTreeView }
 
+procedure TCryptoNetworkTreeView.AttachToSubject(aINodeSubject: INodeSubject);
+begin
+
+end;
+
 constructor TCryptoNetworkTreeView.Create(Owner: TComponent);
+var
+  aMenuItem: TMenuItem;
 begin
   inherited;
 
+  // por el momento ponemos aquí las acciones
+  PopupMenu := TCryptoNetworkPopupMenu.Create(self);
+  aMenuItem := TMenuItem.Create(self);
+  aMenuItem.caption := 'Connect';
+  aMenuItem.OnClick := MenuItemClick;
+
+  PopupMenu.items.add(aMenuItem);
+  /// /
+
   NodeDataSize := SizeOf(TTreeData);
 
+  self.TreeOptions.SelectionOptions := TreeOptions.SelectionOptions +
+    [toRightClickSelect];
   OnGetText := DoGetText;
   OnInitChildren := DoInitChildren;
+  OnGetPopupMenu := DoGetPopupmenu;
+  OnNodeDblClick := NodeDblClick;
 
-  RootNodeCount := 5;
+  // RootNodeCount := 5;
+end;
+
+procedure TCryptoNetworkTreeView.DoGetPopupmenu(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex; const P: TPoint;
+  var AskParent: Boolean; var PopupMenu: TPopupMenu);
+var
+  data, parentdata: PTreeData;
+begin
+  data := GetNodeData(Node);
+
+  case data^.node_type of
+    ntroot:
+      ;
+    ntnetwork:
+      ;
+    ntnode:
+      ;
+  end;
 end;
 
 procedure TCryptoNetworkTreeView.DoGetText(Sender: TBaseVirtualTree;
@@ -85,8 +137,8 @@ begin
     ntnetwork:
       CellText := 'BTC Network';
     ntnode:
-     // if data^.nodedata <> nil then
-        CellText := data^.nodedata.PeerIp;
+      // if data^.nodedata <> nil then
+      CellText := data^.nodedata.PeerIp;
   end;
 
 end;
@@ -105,8 +157,9 @@ begin
       ntroot:
         ChildCount := 1;
       ntnetwork:
-        ChildCount := CryptoNetwork.count;
-      ntnode :
+        if CryptoNetwork <> nil then
+          ChildCount := CryptoNetwork.count;
+      ntnode:
         ChildCount := 0;
     end;
   end;
@@ -123,32 +176,80 @@ begin
   if parentdata = nil then
   begin
     data^.node_type := ntroot;
-    Node.States := Node.States + [vsHasChildren];
+    Node.States := Node.States + [vsHasChildren, vsExpanded];
   end
   else
     case parentdata^.node_type of
       ntroot:
         begin
           data^.node_type := ntnetwork;
-          Node.States := Node.States + [vsHasChildren];
+          Node.States := Node.States + [vsHasChildren, vsExpanded];
         end;
       ntnetwork:
         begin
           data^.node_type := ntnode;
-          data^.nodedata := CryptoNetwork.nodes[node.Index];
+          data^.nodedata := CryptoNetwork.nodes[Node.Index];
+          AttachObserverToSubject(self,CryptoNetwork.nodes[Node.Index]);
         end;
     end;
 
 end;
 
-procedure TCryptoNetworkTreeView.NewBTCAgentAdded(aBTCAgent: TBTCAgent);
+procedure TCryptoNetworkTreeView.MenuItemClick(Sender: TObject);
 var
-  aEnumerator : TVTVirtualNodeEnumerator;
+  aVirtualNodeEnumerator: TVTVirtualNodeEnumerator;
+  data, parentdata: PTreeData;
+begin
+  aVirtualNodeEnumerator := SelectedNodes.GetEnumerator;
+
+  while aVirtualNodeEnumerator.MoveNext do
+  begin
+    data := GetNodeData(aVirtualNodeEnumerator.Current);
+    if data^.node_type = ntnode then
+    begin
+      data^.nodedata.Connect();
+    end;
+  end;
+end;
+
+procedure TCryptoNetworkTreeView.NewBTCAgentAdded(aBTCAgent: TBTCPeerNode);
 begin
 
-  //InitNode(GetFirst(false).FirstChild);
-  ReinitNode(GetFirst(),true);
+  // InitNode(GetFirst(false).FirstChild);
+  ReinitNode(GetFirst(), true);
+end;
 
+procedure TCryptoNetworkTreeView.NodeConnected(aBTCAgent: TBTCPeerNode);
+begin
+
+end;
+
+procedure TCryptoNetworkTreeView.NodeConnected(aNode: string);
+begin
+
+  showmessage(aNode);
+end;
+
+procedure TCryptoNetworkTreeView.NodeDblClick(Sender: TBaseVirtualTree;
+  const HitInfo: THitInfo);
+var
+  aVirtualNodeEnumerator: TVTVirtualNodeEnumerator;
+  data, parentdata: PTreeData;
+begin
+  aVirtualNodeEnumerator := SelectedNodes.GetEnumerator;
+
+  while aVirtualNodeEnumerator.MoveNext do
+  begin
+    data := GetNodeData(aVirtualNodeEnumerator.Current);
+    if data^.node_type = ntnode then
+    begin
+      with TNodeForm.Create(self) do
+      begin
+        Node := data^.nodedata;
+        show();
+      end;
+    end;
+  end;
 
 end;
 

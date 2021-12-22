@@ -56,10 +56,16 @@ procedure TBTCPeerDiscovery.DoResponse(Sender: TObject; RequestId: Integer;
   Authoritative: Boolean);
 var
   k: Integer;
+  amaxpeers : integer;
 begin
+  if fMaxPeers =0  then
+    amaxpeers := high(integer)
+  else
+    amaxpeers := fMaxPeers;
+
   for k := 0 to fDNS.RecordCount - 1 do
   begin
-    if Assigned(FOnResponse) and (k<fMaxPeers) then
+    if Assigned(FOnResponse) and (k<amaxpeers) then
       FOnResponse(self, fDNS.RecordFieldValue[k]);
   end;
 
