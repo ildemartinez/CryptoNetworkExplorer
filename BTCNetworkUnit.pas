@@ -23,18 +23,22 @@ type
       versionMessage: TVersionMessage);
   private
     fMessageVersionEvent: TMessageEventVersion;
+    function getcount: cardinal;
+    function GetNodes(index: integer): TBTCAgent;
 
   public
 
     procedure RegisterObserver(aObserver: iobserver);
-    procedure NotifyNewBTCAgent(const aBTCAgent : TBTCAgent);
+    procedure NotifyNewBTCAgent(const aBTCAgent: TBTCAgent);
 
     constructor Create(Owner: TComponent); override;
     destructor Destroy; override;
 
     procedure connect;
+    property Nodes[index: integer]: TBTCAgent read GetNodes;
   published
     property MaxPeers: cardinal read GetMaxPeers write SetMaxPeers;
+    property count: cardinal read getcount;
 
     property OnVersionMessage: TMessageEventVersion read fMessageVersionEvent
       write fMessageVersionEvent;
@@ -71,9 +75,9 @@ end;
 
 destructor TBTCNetwork.Destroy;
 var
-  I: Integer;
+  I: integer;
 begin
-  for I := 0 to fBTCAgents.Count - 1 do
+  for I := 0 to fBTCAgents.count - 1 do
   begin
     fBTCAgents.Items[I].free;
   end;
@@ -88,12 +92,22 @@ begin
     fMessageVersionEvent(self, versionMessage);
 end;
 
+function TBTCNetwork.getcount: cardinal;
+begin
+  result := fBTCAgents.count;
+end;
+
 function TBTCNetwork.GetMaxPeers: cardinal;
 begin
   result := fBTCPeerDiscovery.MaxPeers;
 end;
 
-procedure TBTCNetwork.NotifyNewBTCAgent(const aBTCAgent : TBTCAgent);
+function TBTCNetwork.GetNodes(index: integer): TBTCAgent;
+begin
+  result := self.fBTCAgents[index];
+end;
+
+procedure TBTCNetwork.NotifyNewBTCAgent(const aBTCAgent: TBTCAgent);
 var
   aObserver: iobserver;
 begin
@@ -106,18 +120,32 @@ end;
 procedure TBTCNetwork.OnDiscovered(Sender: TObject; Peer: string);
 var
   aBTCAgent: TBTCAgent;
+  k: integer;
+  exists: boolean;
 begin
-  aBTCAgent := TBTCAgent.Create(self);
-  aBTCAgent.OnVersionMessage := DoVersionMessage;
-  aBTCAgent.PeerIp := Peer;
 
-  fBTCAgents.Add(aBTCAgent);
+  // TODO Refactor
 
-  NotifyNewBTCAgent(aBtcAgent);
+  exists := false;
+  // Search if exists in the list
+  for k := 0 to fBTCAgents.count - 1 do
+  begin
+    if fBTCAgents[k].PeerIp = Peer then
+      exists := true;
+  end;
 
-  //aBTCAgent.connect;
+  if not exists then
+  begin
+    aBTCAgent := TBTCAgent.Create(self);
+    aBTCAgent.OnVersionMessage := DoVersionMessage;
+    aBTCAgent.PeerIp := Peer;
 
+    fBTCAgents.Add(aBTCAgent);
 
+    NotifyNewBTCAgent(aBTCAgent);
+
+    // aBTCAgent.connect;
+  end;
 end;
 
 procedure TBTCNetwork.RegisterObserver(aObserver: iobserver);

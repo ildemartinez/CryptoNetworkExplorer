@@ -17,6 +17,7 @@ type
   strict private
     fIP: string;
     fipwIPPort1: TipwIPPort;
+    fUserAgent: string;
 
     fMessage: TMessageEvent;
 
@@ -46,6 +47,7 @@ type
     procedure Disconnect;
   published
     property PeerIp: string read GetPeerIP write SetPeerIP;
+    property UserAgent: string read fUserAgent;
 
     property OnMessage: TMessageEvent read fMessage write fMessage;
 
@@ -61,7 +63,7 @@ procedure Register;
 implementation
 
 uses
-  Winapi.Windows, dateutils, dialogs;
+  Winapi.Windows, dateutils;
 
 function StringBytesToTBytes(const s: string): TBytes;
 var
@@ -251,9 +253,12 @@ begin
     aVersionMessage.emmiting_node_port :=
       swap(versionMessage.emmiting_node_port);
 
+    // get User Agent
     aVersionMessage.user_agent := '';
-    for k := 1 to VersionMessage.user_agent[0] do
-      aVersionMessage.user_agent := aVersionMessage.user_agent + char(VersionMessage.user_agent[k]);
+    for k := 1 to versionMessage.user_agent[0] do
+      aVersionMessage.user_agent := aVersionMessage.user_agent +
+        char(versionMessage.user_agent[k]);
+    fUserAgent := aVersionMessage.user_agent;
 
     if assigned(fMessageVersionEvent) then
       fMessageVersionEvent(self, aVersionMessage);

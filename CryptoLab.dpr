@@ -3,7 +3,8 @@ program CryptoLab;
 uses
   Vcl.Forms,
   CryptoLabMainFormUnit in 'CryptoLabMainFormUnit.pas' {Form1},
-  ISubjectUnit in 'ISubjectUnit.pas';
+  ISubjectUnit in 'ISubjectUnit.pas',
+  CryptoNetworkTreeViewUnit in 'CryptoNetworkTreeViewUnit.pas';
 
 {$R *.res}
 

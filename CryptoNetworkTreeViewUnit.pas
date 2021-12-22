@@ -9,10 +9,11 @@ uses
 
 type
 
-  TNodeTypes = (ntroot, ntnetwork);
+  TNodeTypes = (ntroot, ntnetwork, ntnode);
 
   TTreeData = record
     node_type: TNodeTypes;
+    nodedata : TBTCAgent;
     Text: String;
   end;
 
@@ -47,6 +48,9 @@ procedure Register;
 
 implementation
 
+uses
+dialogs;
+
 procedure Register;
 begin
   RegisterComponents('CryptoCurrency', [TCryptoNetworkTreeView]);
@@ -80,6 +84,9 @@ begin
       CellText := 'Networks';
     ntnetwork:
       CellText := 'BTC Network';
+    ntnode:
+     // if data^.nodedata <> nil then
+        CellText := data^.nodedata.PeerIp;
   end;
 
 end;
@@ -95,7 +102,12 @@ begin
   if data <> nil then
   begin
     case data^.node_type of
-      ntroot : childcount := 1;
+      ntroot:
+        ChildCount := 1;
+      ntnetwork:
+        ChildCount := CryptoNetwork.count;
+      ntnode :
+        ChildCount := 0;
     end;
   end;
 end;
@@ -118,14 +130,26 @@ begin
       ntroot:
         begin
           data^.node_type := ntnetwork;
+          Node.States := Node.States + [vsHasChildren];
+        end;
+      ntnetwork:
+        begin
+          data^.node_type := ntnode;
+          data^.nodedata := CryptoNetwork.nodes[node.Index];
         end;
     end;
 
 end;
 
 procedure TCryptoNetworkTreeView.NewBTCAgentAdded(aBTCAgent: TBTCAgent);
+var
+  aEnumerator : TVTVirtualNodeEnumerator;
 begin
-//  self.AddChild(nil, nil)
+
+  //InitNode(GetFirst(false).FirstChild);
+  ReinitNode(GetFirst(),true);
+
+
 end;
 
 procedure TCryptoNetworkTreeView.Notification(AComponent: TComponent;
