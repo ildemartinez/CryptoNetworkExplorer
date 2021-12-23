@@ -17,7 +17,7 @@ type
 
   TMessageEvent = procedure(Sender: TObject; const aMessage: string) of Object;
 
-  TBTCPeerNode = class(TComponent, IPeerNode, INodeSubject)
+  TBTCPeerNode = class(TComponent, IPeerNode, INodeObservable)
   strict private
     fIP: string;
     fipwIPPort1: TipwIPPort;
@@ -45,7 +45,7 @@ type
     procedure DoMessageDetected(const aMessageType: string;
       const apayload: TBytes);
     property NodeSubject: TNodeSubject read fNodeSubject write fNodeSubject
-      implements INodeSubject;
+      implements INodeObservable;
   public
     constructor Create(OWner: TComponent); override;
     destructor Destroy; override;

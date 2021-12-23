@@ -28,7 +28,7 @@ type
     function GetNodes(index: integer): TBTCPeerNode;
 
   public
-    procedure AttachToSubject(aINodeSubject: INodeSubject);
+    procedure AttachToSubject(aINodeSubject: INodeObservable);
     procedure NodeConnected(aNode: string);
 
     procedure RegisterObserver(aObserver: INetworkObserver);
@@ -60,7 +60,7 @@ end;
 
 { TBTCNetwork }
 
-procedure TBTCNetwork.AttachToSubject(aINodeSubject: INodeSubject);
+procedure TBTCNetwork.AttachToSubject(aINodeSubject: INodeObservable);
 begin
 
 end;

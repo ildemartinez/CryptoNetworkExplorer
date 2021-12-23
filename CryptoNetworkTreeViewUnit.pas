@@ -52,7 +52,7 @@ type
 
     // I
     procedure NodeConnected(aNode: string); overload;
-    procedure AttachToSubject(aINodeSubject: INodeSubject);
+    procedure AttachToSubject(aINodeSubject: INodeObservable);
   published
     property CryptoNetwork: TBTCNetwork read fCryptonetwork
       write setCryptoNetwork;
@@ -72,7 +72,7 @@ end;
 
 { TCryptoNetworkTreeView }
 
-procedure TCryptoNetworkTreeView.AttachToSubject(aINodeSubject: INodeSubject);
+procedure TCryptoNetworkTreeView.AttachToSubject(aINodeSubject: INodeObservable);
 begin
 
 end;

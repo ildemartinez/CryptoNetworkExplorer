@@ -7,22 +7,20 @@ uses
   System.Generics.Collections;
 
 type
-  INodeSubject = interface;
-
   // Node Observer pattern
   INodeObserver = interface
     ['{C805DD3C-5A0C-4FD3-A1D5-30DF1BC53835}']
     procedure NodeConnected(aNode: string);
   end;
 
-  INodeSubject = interface
+  INodeObservable = interface
     ['{1ECE5AAA-F65E-4BF8-8527-75185C73A1D5}']
     procedure RegisterObserver(aObserver: INodeObserver);
     procedure UnregisterObserver(aObserver: INodeObserver);
     procedure Notify(aNode: string);
   end;
 
-  TNodeSubject = class(TInterfacedObject, INodeSubject)
+  TNodeSubject = class(TInterfacedObject, INodeObservable)
   private
     fObserverList: Tlist<INodeObserver>;
 
@@ -35,22 +33,22 @@ type
   end;
 
 procedure AttachObserverToSubject(aObserver: INodeObserver;
-  aSubject: INodeSubject);
+  aSubject: INodeObservable);
 procedure DeattachObserverFromSubject(aObserver: INodeObserver;
-  aSubject: INodeSubject);
+  aSubject: INodeObservable);
 
 implementation
 
 { TNodeSubject }
 
 procedure AttachObserverToSubject(aObserver: INodeObserver;
-  aSubject: INodeSubject);
+  aSubject: INodeObservable);
 begin
   aSubject.RegisterObserver(aObserver);
 end;
 
 procedure DeattachObserverFromSubject(aObserver: INodeObserver;
-  aSubject: INodeSubject);
+  aSubject: INodeObservable);
 begin
   aSubject.UnregisterObserver(aObserver);
 end;
