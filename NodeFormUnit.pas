@@ -18,7 +18,7 @@ type
     procedure SetNode(const Value: TBTCPeerNode);
     { Private declarations }
 
-    procedure NodeConnected(aNode: INode);
+    procedure NodeConnected(const aNode: INode);
   public
     { Public declarations }
     destructor Destroy; override;
@@ -44,7 +44,7 @@ begin
   Action := caFree;
 end;
 
-procedure TNodeForm.NodeConnected(aNode: inode);
+procedure TNodeForm.NodeConnected(const aNode: inode);
 begin
   caption := 'connected'+aNode.GetIP;
 end;

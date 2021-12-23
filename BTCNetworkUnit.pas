@@ -30,7 +30,7 @@ type
 
   public
     procedure AttachToSubject(aINodeSubject: INodeObservable);
-    procedure NodeConnected(aNode: INode);
+    procedure NodeConnected(const aNode: INode);
 
     procedure RegisterObserver(aObserver: INetworkObserver);
     procedure NotifyNewBTCAgent(const aBTCAgent: TBTCPeerNode);

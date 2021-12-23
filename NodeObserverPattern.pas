@@ -11,7 +11,7 @@ type
   // Node Observer pattern
   INodeObserver = interface
     ['{C805DD3C-5A0C-4FD3-A1D5-30DF1BC53835}']
-    procedure NodeConnected(aNode: INode);
+    procedure NodeConnected(const aNode: INode);
   end;
 
   INodeObservable = interface
@@ -21,7 +21,7 @@ type
     procedure Notify(aNode: INode);
   end;
 
-  TNodeSubject = class(TInterfacedObject, INodeObservable)
+  TNodeObservable = class(TInterfacedObject, INodeObservable)
   private
     fObserverList: Tlist<INodeObserver>;
 
@@ -54,14 +54,14 @@ begin
   aSubject.UnregisterObserver(aObserver);
 end;
 
-destructor TNodeSubject.Destroy;
+destructor TNodeObservable.Destroy;
 begin
   fObserverList.free;
 
   inherited;
 end;
 
-procedure TNodeSubject.Notify(aNode: INode);
+procedure TNodeObservable.Notify(aNode: INode);
 var
   aObserver: INodeObserver;
 begin
@@ -71,7 +71,7 @@ begin
   end;
 end;
 
-procedure TNodeSubject.RegisterObserver(aObserver: INodeObserver);
+procedure TNodeObservable.RegisterObserver(aObserver: INodeObserver);
 begin
   if fObserverList = nil then
     fObserverList := Tlist<INodeObserver>.Create;
@@ -80,7 +80,7 @@ begin
     fObserverList.Add(aObserver);
 end;
 
-procedure TNodeSubject.UnregisterObserver(aObserver: INodeObserver);
+procedure TNodeObservable.UnregisterObserver(aObserver: INodeObserver);
 begin
   if fObserverList <> nil then
     fObserverList.Remove(aObserver);

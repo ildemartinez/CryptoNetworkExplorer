@@ -20,11 +20,12 @@ type
 
   PTreeData = ^TTreeData; // This is a node example.
 
-  TCryptoNetworkTreeView = class(TCustomVirtualStringTree, INetworkObserver,
+  TCryptoNetworkTreeView = class(TCustomVirtualStringTree,
+    INetworkObserver,
     INodeObserver)
   private
     fCryptonetwork: TBTCNetwork;
-    fPopupMenu: TCryptoNetworkPopupMenu;
+//    fPopupMenu: TCryptoNetworkPopupMenu;
     procedure setCryptoNetwork(const Value: TBTCNetwork);
 
     procedure Notification(AComponent: TComponent;
@@ -51,8 +52,7 @@ type
     procedure NodeConnected(aBTCAgent: TBTCPeerNode); overload;
 
     // I
-    procedure NodeConnected(aNode: INode); overload;
-    procedure AttachToSubject(aINodeSubject: INodeObservable);
+    procedure NodeConnected(const aNode: INode); overload;
   published
     property CryptoNetwork: TBTCNetwork read fCryptonetwork
       write setCryptoNetwork;
@@ -68,13 +68,6 @@ uses
 procedure Register;
 begin
   RegisterComponents('CryptoCurrency', [TCryptoNetworkTreeView]);
-end;
-
-{ TCryptoNetworkTreeView }
-
-procedure TCryptoNetworkTreeView.AttachToSubject(aINodeSubject: INodeObservable);
-begin
-
 end;
 
 constructor TCryptoNetworkTreeView.Create(Owner: TComponent);
@@ -198,7 +191,7 @@ end;
 procedure TCryptoNetworkTreeView.MenuItemClick(Sender: TObject);
 var
   aVirtualNodeEnumerator: TVTVirtualNodeEnumerator;
-  data, parentdata: PTreeData;
+  data: PTreeData;
 begin
   aVirtualNodeEnumerator := SelectedNodes.GetEnumerator;
 
@@ -224,9 +217,8 @@ begin
 
 end;
 
-procedure TCryptoNetworkTreeView.NodeConnected(aNode: inode);
+procedure TCryptoNetworkTreeView.NodeConnected(const aNode: inode);
 begin
-
   showmessage('aNode');
 end;
 
@@ -234,7 +226,7 @@ procedure TCryptoNetworkTreeView.NodeDblClick(Sender: TBaseVirtualTree;
   const HitInfo: THitInfo);
 var
   aVirtualNodeEnumerator: TVTVirtualNodeEnumerator;
-  data, parentdata: PTreeData;
+  data: PTreeData;
 begin
   aVirtualNodeEnumerator := SelectedNodes.GetEnumerator;
 

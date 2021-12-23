@@ -30,7 +30,7 @@ type
   private
     fMessageVersionEvent: TMessageEventVersion;
     fMessageVerackEvent: TMessageEventVerack;
-    fNodeSubject: TNodeSubject;
+    fImplNodeObsevable: TNodeObservable;
 
     procedure Connected2(Sender: TObject; StatusCode: Integer;
       const Description: String);
@@ -44,7 +44,7 @@ type
 
     procedure DoMessageDetected(const aMessageType: string;
       const apayload: TBytes);
-    property NodeSubject: TNodeSubject read fNodeSubject write fNodeSubject
+    property ImplNodeObsevable: TNodeObservable read fImplNodeObsevable write fImplNodeObsevable
       implements INodeObservable;
   public
     constructor Create(OWner: TComponent); override;
@@ -117,7 +117,7 @@ constructor TBTCPeerNode.Create(OWner: TComponent);
 begin
   inherited;
 
-  fNodeSubject := TNodeSubject.Create;
+  fImplNodeObsevable := TNodeObservable.Create;
 
   fipwIPPort1 := TipwIPPort.Create(self);
   fipwIPPort1.OnConnected := Connected2;
@@ -284,11 +284,7 @@ begin
     if assigned(fMessageVersionEvent) then
       fMessageVersionEvent(self, aVersionMessage);
 
-    NodeSubject.Notify(self); //.PeerIp);
-    { *    for aObserver in fObserverList do
-      begin
-      aObserver.NodeConnected(self.PeerIp);
-      end;* }
+    ImplNodeObsevable.Notify(self);
   end
   else if aMessageType = MESSAGE_TYPE_VERACK then
   begin
