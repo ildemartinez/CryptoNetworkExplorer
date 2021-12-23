@@ -17,7 +17,7 @@ type
 
   TMessageEvent = procedure(Sender: TObject; const aMessage: string) of Object;
 
-  TBTCPeerNode = class(TComponent, IPeerNode, INodeObservable)
+  TBTCPeerNode = class(TComponent, INode, IBTCPeerNode, INodeObservable)
   strict private
     fIP: string;
     fipwIPPort1: TipwIPPort;
@@ -25,7 +25,7 @@ type
 
     fMessage: TMessageEvent;
 
-    function GetPeerIP: string;
+    function GetIP: string;
     procedure SetPeerIP(const Value: string);
   private
     fMessageVersionEvent: TMessageEventVersion;
@@ -57,7 +57,7 @@ type
     function Connected: Boolean;
 
   published
-    property PeerIp: string read GetPeerIP write SetPeerIP;
+    property PeerIp: string read GetIP write SetPeerIP;
     property UserAgent: string read fUserAgent;
 
     property OnMessage: TMessageEvent read fMessage write fMessage;
@@ -284,7 +284,7 @@ begin
     if assigned(fMessageVersionEvent) then
       fMessageVersionEvent(self, aVersionMessage);
 
-    NodeSubject.Notify(self.PeerIp);
+    NodeSubject.Notify(self); //.PeerIp);
     { *    for aObserver in fObserverList do
       begin
       aObserver.NodeConnected(self.PeerIp);
@@ -305,7 +305,7 @@ begin
 
 end;
 
-function TBTCPeerNode.GetPeerIP: string;
+function TBTCPeerNode.GetIP: string;
 begin
   result := fIP;
 end;

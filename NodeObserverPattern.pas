@@ -4,20 +4,21 @@ interface
 
 uses
   classes,
+  ipeernodeunit,
   System.Generics.Collections;
 
 type
   // Node Observer pattern
   INodeObserver = interface
     ['{C805DD3C-5A0C-4FD3-A1D5-30DF1BC53835}']
-    procedure NodeConnected(aNode: string);
+    procedure NodeConnected(aNode: INode);
   end;
 
   INodeObservable = interface
     ['{1ECE5AAA-F65E-4BF8-8527-75185C73A1D5}']
     procedure RegisterObserver(aObserver: INodeObserver);
     procedure UnregisterObserver(aObserver: INodeObserver);
-    procedure Notify(aNode: string);
+    procedure Notify(aNode: INode);
   end;
 
   TNodeSubject = class(TInterfacedObject, INodeObservable)
@@ -29,7 +30,7 @@ type
     procedure RegisterObserver(aObserver: INodeObserver);
     procedure UnregisterObserver(aObserver: INodeObserver);
 
-    procedure Notify(aNode: string);
+    procedure Notify(aNode: INode);
   end;
 
 procedure AttachObserverToSubject(aObserver: INodeObserver;
@@ -60,7 +61,7 @@ begin
   inherited;
 end;
 
-procedure TNodeSubject.Notify(aNode: string);
+procedure TNodeSubject.Notify(aNode: INode);
 var
   aObserver: INodeObserver;
 begin

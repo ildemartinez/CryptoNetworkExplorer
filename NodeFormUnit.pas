@@ -6,7 +6,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes, Vcl.Graphics,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, BTCPeerNodeUnit, NodeObserverPattern,
-  Vcl.StdCtrls;
+  Vcl.StdCtrls, IPeerNodeUnit;
 
 type
   TNodeForm = class(TForm, INodeObserver)
@@ -18,7 +18,7 @@ type
     procedure SetNode(const Value: TBTCPeerNode);
     { Private declarations }
 
-    procedure NodeConnected(aNode: string);
+    procedure NodeConnected(aNode: INode);
   public
     { Public declarations }
     destructor Destroy; override;
@@ -44,10 +44,9 @@ begin
   Action := caFree;
 end;
 
-procedure TNodeForm.NodeConnected(aNode: string);
+procedure TNodeForm.NodeConnected(aNode: inode);
 begin
-  caption := 'connected' + aNode;
-
+  caption := 'connected'+aNode.GetIP;
 end;
 
 procedure TNodeForm.SetNode(const Value: TBTCPeerNode);

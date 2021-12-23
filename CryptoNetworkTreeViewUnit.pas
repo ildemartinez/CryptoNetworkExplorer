@@ -5,7 +5,7 @@ interface
 uses
   System.SysUtils, System.Classes, System.Types, vcl.Menus,
   BTCNetworkUnit, isubjectunit, BTCPeerNodeUnit, CryptoNetworkPopupMenuUnit,
-  NodeObserverPattern,
+  NodeObserverPattern, ipeernodeunit,
   VirtualTrees;
 
 type
@@ -51,7 +51,7 @@ type
     procedure NodeConnected(aBTCAgent: TBTCPeerNode); overload;
 
     // I
-    procedure NodeConnected(aNode: string); overload;
+    procedure NodeConnected(aNode: INode); overload;
     procedure AttachToSubject(aINodeSubject: INodeObservable);
   published
     property CryptoNetwork: TBTCNetwork read fCryptonetwork
@@ -224,10 +224,10 @@ begin
 
 end;
 
-procedure TCryptoNetworkTreeView.NodeConnected(aNode: string);
+procedure TCryptoNetworkTreeView.NodeConnected(aNode: inode);
 begin
 
-  showmessage(aNode);
+  showmessage('aNode');
 end;
 
 procedure TCryptoNetworkTreeView.NodeDblClick(Sender: TBaseVirtualTree;

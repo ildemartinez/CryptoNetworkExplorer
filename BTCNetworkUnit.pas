@@ -4,6 +4,7 @@ interface
 
 uses
   classes, Generics.Collections,
+  IPeerNodeunit,
   BTCPeerDiscoveryUnit, BTCTypes, ISubjectUnit, BTCPeerNodeUnit,
   NodeObserverPattern;
 
@@ -29,7 +30,7 @@ type
 
   public
     procedure AttachToSubject(aINodeSubject: INodeObservable);
-    procedure NodeConnected(aNode: string);
+    procedure NodeConnected(aNode: INode);
 
     procedure RegisterObserver(aObserver: INetworkObserver);
     procedure NotifyNewBTCAgent(const aBTCAgent: TBTCPeerNode);
