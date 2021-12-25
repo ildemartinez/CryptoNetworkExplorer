@@ -11,7 +11,7 @@ uses
   CryptoNetworkTreeViewUnit, Data.DB, Vcl.DBCtrls, Vcl.Menus,
   System.Actions, Vcl.ActnList, Vcl.StdActns,
   Vcl.PlatformDefaultStyleActnCtrls, Vcl.ActnMan, Vcl.ToolWin,
-  Vcl.ActnCtrls, Vcl.ActnMenus;
+  Vcl.ActnCtrls, Vcl.ActnMenus, System.ImageList, Vcl.ImgList;
 
 type
   TForm1 = class(TForm)
@@ -21,6 +21,7 @@ type
     WindowMinimizeAll1: TWindowMinimizeAll;
     Action1: TAction;
     Action2: TAction;
+    ImageList1: TImageList;
     procedure Action2Execute(Sender: TObject);
 
   private
@@ -66,7 +67,6 @@ begin
   fCryptoNetworkTreeView1.parent := self;
   fCryptoNetworkTreeView1.Align := alLeft;
   fCryptoNetworkTreeView1.CryptoNetwork := self.fCryptoNetwork;
-
 end;
 
 destructor TForm1.Destroy;

@@ -46,7 +46,8 @@ type
       var ChildCount: Cardinal);
     procedure DoPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas;
       Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
-
+      procedure GetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
+    Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
   public
     constructor Create(Owner: TComponent); override;
 
@@ -62,12 +63,16 @@ type
 
 procedure Register;
 
+{$R resources.res}
+
 implementation
 
 uses
   vcl.Graphics,
+  Vcl.ImgList,
   dialogs,
-  NodeFormUnit;
+  NodeFormUnit,
+  Ut_images;
 
 procedure Register;
 begin
@@ -91,14 +96,19 @@ begin
 
   NodeDataSize := SizeOf(TTreeData);
 
-  self.TreeOptions.SelectionOptions := TreeOptions.SelectionOptions +
-    [toRightClickSelect];
+  TreeOptions.SelectionOptions := TreeOptions.SelectionOptions +
+    [toRightClickSelect, //toLevelSelectConstraint,
+    tomultiselect, toSiblingSelectConstraint ];
+
+
   OnGetText := DoGetText;
   OnInitChildren := DoInitChildren;
   OnGetPopupMenu := DoGetPopupmenu;
   OnNodeDblClick := NodeDblClick;
   OnPaintText := DoPaintText;
+  OnGetImageIndex := GetImageIndex;
 
+  Images := GetGlobalImagesList();
   // RootNodeCount := 5;
 end;
 
@@ -237,6 +247,16 @@ begin
 
   end;
 
+end;
+
+procedure TCryptoNetworkTreeView.GetImageIndex(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
+  var Ghosted: Boolean; var ImageIndex: TImageIndex);
+Var
+  ResName:String;
+  H:THandle;
+begin
+  imageindex := -1; // GetGlobalImagesList.GetImageIndexByName('');
 end;
 
 procedure TCryptoNetworkTreeView.MenuItemClick(Sender: TObject);
