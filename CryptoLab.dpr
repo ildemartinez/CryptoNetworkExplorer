@@ -2,13 +2,14 @@ program CryptoLab;
 
 uses
   Vcl.Forms,
-  CryptoLabMainFormUnit in 'CryptoLabMainFormUnit.pas' {Form1} ,
+  CryptoLabMainFormUnit in 'CryptoLabMainFormUnit.pas' {Form1},
   ISubjectUnit in 'ISubjectUnit.pas',
   CryptoNetworkTreeViewUnit in 'CryptoNetworkTreeViewUnit.pas',
   CryptoNetworkPopupMenuUnit in 'CryptoNetworkPopupMenuUnit.pas',
-  NodeFormUnit in 'NodeFormUnit.pas' {NodeForm} ,
+  NodeFormUnit in 'NodeFormUnit.pas' {NodeForm},
   NodeObserverPattern in 'NodeObserverPattern.pas',
-  IPeerNodeUnit in 'IPeerNodeUnit.pas';
+  IPeerNodeUnit in 'IPeerNodeUnit.pas',
+  PeerNodeUnit in 'PeerNodeUnit.pas';
 
 {$R *.res}
 

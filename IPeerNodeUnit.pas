@@ -5,7 +5,11 @@ interface
 type
   INode = interface
     ['{90648BB9-6CEB-46A7-AD53-12775A7577DF}']
+    // just to test server connectivity
+    function ServerConnected: boolean;
+    // test protocol conected
     function Connected: boolean;
+    // Get the server node IP
     function GetIP: string;
   end;
 

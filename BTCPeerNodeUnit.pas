@@ -6,6 +6,7 @@ uses
   System.SysUtils, System.Classes,
   System.Generics.Collections,
   IPeerNodeUnit,
+  PeerNodeUnit,
   NodeObserverPattern,
   ipwcore, ipwtypes, ipwipport, btctypes;
 
@@ -17,23 +18,19 @@ type
 
   TMessageEvent = procedure(Sender: TObject; const aMessage: string) of Object;
 
-  TBTCPeerNode = class(TComponent, INode, IBTCPeerNode, INodeObservable)
+  TBTCPeerNode = class(TPeerNode, IBTCPeerNode)
   strict private
-    fIP: string;
+
     fipwIPPort1: TipwIPPort;
     fUserAgent: string;
 
     fMessage: TMessageEvent;
-    fConnected: boolean;
 
-    function GetIP: string;
-    procedure SetPeerIP(const Value: string);
   private
     fMessageVersionEvent: TMessageEventVersion;
     fMessageVerackEvent: TMessageEventVerack;
-    fImplNodeObsevable: TNodeObservable;
 
-    procedure Connected2(Sender: TObject; StatusCode: Integer;
+    procedure Connected(Sender: TObject; StatusCode: Integer;
       const Description: String);
     procedure DataIn(Sender: TObject; Text: String; TextB: TBytes;
       EOL: boolean);
@@ -48,8 +45,6 @@ type
 
     procedure VerackMessage(Sender: TObject);
 
-    property ImplNodeObsevable: TNodeObservable read fImplNodeObsevable
-      write fImplNodeObsevable implements INodeObservable;
   public
     constructor Create(OWner: TComponent); override;
     destructor Destroy; override;
@@ -57,11 +52,7 @@ type
     procedure Connect;
     procedure Disconnect;
 
-    // IPeerNode
-    function Connected: boolean;
-
   published
-    property PeerIp: string read GetIP write SetPeerIP;
     property UserAgent: string read fUserAgent;
 
     property OnMessage: TMessageEvent read fMessage write fMessage;
@@ -96,18 +87,15 @@ end;
 
 procedure TBTCPeerNode.Connect;
 begin
-  fipwIPPort1.Connect(self.fIP, 8333);
+  fipwIPPort1.Connect(PeerIp, 8333);
 end;
 
-procedure TBTCPeerNode.Connected2(Sender: TObject; StatusCode: Integer;
+procedure TBTCPeerNode.Connected(Sender: TObject; StatusCode: Integer;
   const Description: String);
 begin
+  fServerConnected := true;
 
-end;
-
-function TBTCPeerNode.Connected: boolean;
-begin
-  result := fConnected;
+  ImplNodeObsevable.Notify(msgtserverconnected, self)
 end;
 
 procedure TBTCPeerNode.ConnectionStatus(Sender: TObject;
@@ -121,12 +109,8 @@ constructor TBTCPeerNode.Create(OWner: TComponent);
 begin
   inherited;
 
-  fConnected := false;
-
-  fImplNodeObsevable := TNodeObservable.Create;
-
   fipwIPPort1 := TipwIPPort.Create(self);
-  fipwIPPort1.OnConnected := Connected2;
+  fipwIPPort1.OnConnected := Connected;
   // conectado al nodo pero no al protocolo
   fipwIPPort1.OnDataIn := DataIn;
   fipwIPPort1.OnConnectionStatus := ConnectionStatus;
@@ -291,12 +275,14 @@ begin
     if assigned(fMessageVersionEvent) then
       fMessageVersionEvent(self, aVersionMessage);
 
-    ImplNodeObsevable.Notify(self);
+    ImplNodeObsevable.Notify(msgtrefresh, self);
   end
   else if aMessageType = MESSAGE_TYPE_VERACK then
   begin
     if assigned(fMessageVerackEvent) then
       fMessageVerackEvent(self);
+
+    ImplNodeObsevable.Notify(msgtprotocolconnected, self);
   end
   else if assigned(fMessage) then
     fMessage(self, aMessageType);
@@ -306,11 +292,6 @@ procedure TBTCPeerNode.Error(Sender: TObject; ErrorCode: Integer;
   const Description: string);
 begin
 
-end;
-
-function TBTCPeerNode.GetIP: string;
-begin
-  result := fIP;
 end;
 
 procedure TBTCPeerNode.ReadyToSend(Sender: TObject);
@@ -352,11 +333,6 @@ begin
     '0defbc6100000000090400000000000000000000000000000000ffff23c121bf208d0804000000000000000000000000000000000000000000000000fdba00e1964f2006102f5361746f7368693a32322e302e302f25c2030001');
   fipwIPPort1.send(tb);
 
-end;
-
-procedure TBTCPeerNode.SetPeerIP(const Value: string);
-begin
-  fIP := Value;
 end;
 
 procedure TBTCPeerNode.VerackMessage(Sender: TObject);

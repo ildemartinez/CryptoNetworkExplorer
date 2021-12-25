@@ -46,8 +46,9 @@ type
       var ChildCount: Cardinal);
     procedure DoPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas;
       Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
-      procedure GetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
-    Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
+    procedure GetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean;
+      var ImageIndex: TImageIndex);
   public
     constructor Create(Owner: TComponent); override;
 
@@ -69,7 +70,7 @@ implementation
 
 uses
   vcl.Graphics,
-  Vcl.ImgList,
+  vcl.ImgList,
   dialogs,
   NodeFormUnit,
   Ut_images;
@@ -97,9 +98,8 @@ begin
   NodeDataSize := SizeOf(TTreeData);
 
   TreeOptions.SelectionOptions := TreeOptions.SelectionOptions +
-    [toRightClickSelect, //toLevelSelectConstraint,
-    tomultiselect, toSiblingSelectConstraint ];
-
+    [toRightClickSelect, // toLevelSelectConstraint,
+  tomultiselect, toSiblingSelectConstraint];
 
   OnGetText := DoGetText;
   OnInitChildren := DoInitChildren;
@@ -240,10 +240,17 @@ begin
     ntnetwork:
       ;
     ntnode:
-      if data^.nodedata.Connected then
-        TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold]
-      else
-        TargetCanvas.Font.Style := TargetCanvas.Font.Style - [fsBold]
+      begin
+        if data^.nodedata.Connected then
+          TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold]
+        else
+          TargetCanvas.Font.Style := TargetCanvas.Font.Style - [fsBold];
+
+        if data^.nodedata.serverconnected then
+          TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsItalic]
+        else
+          TargetCanvas.Font.Style := TargetCanvas.Font.Style - [fsItalic];
+      end;
 
   end;
 
@@ -253,10 +260,10 @@ procedure TCryptoNetworkTreeView.GetImageIndex(Sender: TBaseVirtualTree;
   Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
   var Ghosted: Boolean; var ImageIndex: TImageIndex);
 Var
-  ResName:String;
-  H:THandle;
+  ResName: String;
+  H: THandle;
 begin
-  imageindex := -1; // GetGlobalImagesList.GetImageIndexByName('');
+  ImageIndex := -1; // GetGlobalImagesList.GetImageIndexByName('');
 end;
 
 procedure TCryptoNetworkTreeView.MenuItemClick(Sender: TObject);
