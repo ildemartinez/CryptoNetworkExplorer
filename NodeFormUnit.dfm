@@ -17,8 +17,8 @@ object NodeForm: TNodeForm
   PixelsPerInch = 96
   TextHeight = 13
   object Label1: TLabel
-    Left = 128
-    Top = 80
+    Left = 240
+    Top = 104
     Width = 31
     Height = 13
     Caption = 'Label1'

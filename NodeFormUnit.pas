@@ -18,7 +18,7 @@ type
     procedure SetNode(const Value: TBTCPeerNode);
     { Private declarations }
 
-    procedure NodeConnected(const aNode: INode);
+    procedure DoNotify(const msgtype: TMSGType; const aNode: INode);
   public
     { Public declarations }
     destructor Destroy; override;
@@ -39,14 +39,14 @@ begin
   inherited;
 end;
 
+procedure TNodeForm.DoNotify(const msgtype: TMSGType; const aNode: INode);
+begin
+  caption := 'connected' + aNode.GetIP;
+end;
+
 procedure TNodeForm.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
   Action := caFree;
-end;
-
-procedure TNodeForm.NodeConnected(const aNode: inode);
-begin
-  caption := 'connected'+aNode.GetIP;
 end;
 
 procedure TNodeForm.SetNode(const Value: TBTCPeerNode);

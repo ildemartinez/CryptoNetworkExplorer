@@ -16,11 +16,9 @@ implementation
 
 { TCryptoNetworkPopupMenu }
 
-
 procedure TCryptoNetworkPopupMenu.DoPopup(Sender: TObject);
 begin
   inherited;
-
 
 end;
 

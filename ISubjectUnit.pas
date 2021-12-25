@@ -21,7 +21,6 @@ type
     procedure NotifyNodeConnected(const aBTCAgent: TBTCPeerNode);
   end;
 
-
 implementation
 
 end.

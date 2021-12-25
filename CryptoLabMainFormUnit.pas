@@ -8,18 +8,20 @@ uses
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
   Vcl.ExtCtrls, Vcl.AppEvnts,
   BTCPeerDiscoveryUnit, BTCTypes, VirtualTrees, btcnetworkunit,
-  CryptoNetworkTreeViewUnit, Data.DB, Vcl.DBCtrls, Vcl.Menus;
+  CryptoNetworkTreeViewUnit, Data.DB, Vcl.DBCtrls, Vcl.Menus,
+  System.Actions, Vcl.ActnList, Vcl.StdActns,
+  Vcl.PlatformDefaultStyleActnCtrls, Vcl.ActnMan, Vcl.ToolWin,
+  Vcl.ActnCtrls, Vcl.ActnMenus;
 
 type
   TForm1 = class(TForm)
-    TrayIcon1: TTrayIcon;
-    ApplicationEvents1: TApplicationEvents;
-    Button1: TButton;
-    PopupMenu1: TPopupMenu;
-
-    procedure TrayIcon1DblClick(Sender: TObject);
-    procedure ApplicationEvents1Minimize(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
+    ActionMainMenuBar1: TActionMainMenuBar;
+    ActionManager1: TActionManager;
+    WindowArrange1: TWindowArrange;
+    WindowMinimizeAll1: TWindowMinimizeAll;
+    Action1: TAction;
+    Action2: TAction;
+    procedure Action2Execute(Sender: TObject);
 
   private
     { Private declarations }
@@ -41,23 +43,9 @@ implementation
 
 {$R *.dfm}
 
-procedure TForm1.ApplicationEvents1Minimize(Sender: TObject);
+procedure TForm1.Action2Execute(Sender: TObject);
 begin
-  { Hide the window and set its state variable to wsMinimized. }
-  hide();
-  WindowState := wsMinimized;
-  { Show the animated tray icon and also a hint balloon. }
-  TrayIcon1.Visible := True;
-  TrayIcon1.Animate := True;
-  TrayIcon1.ShowBalloonHint;
-end;
-
-procedure TForm1.Button1Click(Sender: TObject);
-begin
-  fCryptoNetwork.connect;
-
-  fCryptoNetworkTreeView1.CryptoNetwork := fCryptoNetwork;
-
+  self.Close;
 end;
 
 constructor TForm1.Create(Owner: TComponent);
@@ -78,22 +66,6 @@ begin
   fCryptoNetworkTreeView1.parent := self;
   fCryptoNetworkTreeView1.Align := alLeft;
   fCryptoNetworkTreeView1.CryptoNetwork := self.fCryptoNetwork;
-
-  TrayIcon1.Hint := 'BTC Agent';
-  // hide();
-  // WindowState := wsMinimized;
-
-  { Set up a hint balloon. }
-  TrayIcon1.BalloonTitle := 'Restoring the window.';
-  TrayIcon1.BalloonHint :=
-    'Double click the system tray icon to restore the window.';
-  TrayIcon1.BalloonFlags := bfInfo;
-  TrayIcon1.ShowBalloonHint();
-
-  { Show the animated tray icon and also a hint balloon. }
-  TrayIcon1.Visible := True;
-  TrayIcon1.Animate := True;
-  TrayIcon1.ShowBalloonHint;
 
 end;
 
@@ -116,16 +88,6 @@ begin
     Memo1.Lines.add('Port: ' + versionMessage.emmiting_node_port.ToString);
 
     Memo1.Lines.add('User agent: ' + versionMessage.user_agent);* }
-end;
-
-procedure TForm1.TrayIcon1DblClick(Sender: TObject);
-begin
-  { Hide the tray icon and show the window,
-    setting its state property to wsNormal. }
-  TrayIcon1.Visible := False;
-  Show();
-  WindowState := wsNormal;
-  Application.BringToFront();
 end;
 
 end.

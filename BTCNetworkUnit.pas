@@ -27,10 +27,11 @@ type
     fMessageVersionEvent: TMessageEventVersion;
     function getcount: cardinal;
     function GetNodes(index: integer): TBTCPeerNode;
+    procedure NodeConnected;
 
   public
     procedure AttachToSubject(aINodeSubject: INodeObservable);
-    procedure NodeConnected(const aNode: INode);
+    procedure DoNotify(const msgtype: TMSGType; const aNode: INode);
 
     procedure RegisterObserver(aObserver: INetworkObserver);
     procedure NotifyNewBTCAgent(const aBTCAgent: TBTCPeerNode);
@@ -93,6 +94,12 @@ begin
   end;
 
   inherited;
+end;
+
+procedure TBTCNetwork.DoNotify(const msgtype: TMSGType;
+  const aNode: INode);
+begin
+
 end;
 
 procedure TBTCNetwork.DoVersionMessage(Sender: TObject;

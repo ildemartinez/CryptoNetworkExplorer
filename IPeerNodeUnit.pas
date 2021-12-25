@@ -6,7 +6,7 @@ type
   INode = interface
     ['{90648BB9-6CEB-46A7-AD53-12775A7577DF}']
     function Connected: boolean;
-    function GetIP : string;
+    function GetIP: string;
   end;
 
   IBTCPeerNode = interface(INode)

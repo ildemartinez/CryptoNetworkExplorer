@@ -24,6 +24,7 @@ type
     fUserAgent: string;
 
     fMessage: TMessageEvent;
+    fConnected: boolean;
 
     function GetIP: string;
     procedure SetPeerIP(const Value: string);
@@ -35,7 +36,7 @@ type
     procedure Connected2(Sender: TObject; StatusCode: Integer;
       const Description: String);
     procedure DataIn(Sender: TObject; Text: String; TextB: TBytes;
-      EOL: Boolean);
+      EOL: boolean);
     procedure ConnectionStatus(Sender: TObject; const ConnectionEvent: string;
       StatusCode: Integer; const Description: string);
     procedure ReadyToSend(Sender: TObject);
@@ -44,8 +45,11 @@ type
 
     procedure DoMessageDetected(const aMessageType: string;
       const apayload: TBytes);
-    property ImplNodeObsevable: TNodeObservable read fImplNodeObsevable write fImplNodeObsevable
-      implements INodeObservable;
+
+    procedure VerackMessage(Sender: TObject);
+
+    property ImplNodeObsevable: TNodeObservable read fImplNodeObsevable
+      write fImplNodeObsevable implements INodeObservable;
   public
     constructor Create(OWner: TComponent); override;
     destructor Destroy; override;
@@ -54,7 +58,7 @@ type
     procedure Disconnect;
 
     // IPeerNode
-    function Connected: Boolean;
+    function Connected: boolean;
 
   published
     property PeerIp: string read GetIP write SetPeerIP;
@@ -101,9 +105,9 @@ begin
 
 end;
 
-function TBTCPeerNode.Connected: Boolean;
+function TBTCPeerNode.Connected: boolean;
 begin
-
+  result := fConnected;
 end;
 
 procedure TBTCPeerNode.ConnectionStatus(Sender: TObject;
@@ -117,6 +121,8 @@ constructor TBTCPeerNode.Create(OWner: TComponent);
 begin
   inherited;
 
+  fConnected := false;
+
   fImplNodeObsevable := TNodeObservable.Create;
 
   fipwIPPort1 := TipwIPPort.Create(self);
@@ -127,11 +133,12 @@ begin
   fipwIPPort1.OnReadyToSend := ReadyToSend;
   fipwIPPort1.OnError := Error;
 
+  OnVerackMessage := VerackMessage;
   // aBTCThreadMonitor :=  TBTCThreadMonitor.Create(fIp,self);
 end;
 
 procedure TBTCPeerNode.DataIn(Sender: TObject; Text: String; TextB: TBytes;
-  EOL: Boolean);
+  EOL: boolean);
 var
   k, j: Integer;
   status: Integer;
@@ -350,6 +357,11 @@ end;
 procedure TBTCPeerNode.SetPeerIP(const Value: string);
 begin
   fIP := Value;
+end;
+
+procedure TBTCPeerNode.VerackMessage(Sender: TObject);
+begin
+  fConnected := true;
 end;
 
 end.

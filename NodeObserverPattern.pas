@@ -8,10 +8,12 @@ uses
   System.Generics.Collections;
 
 type
+  TMSGType = (msgtrefresh);
+
   // Node Observer pattern
   INodeObserver = interface
     ['{C805DD3C-5A0C-4FD3-A1D5-30DF1BC53835}']
-    procedure NodeConnected(const aNode: INode);
+    procedure DoNotify(const msgtype: TMSGType; const aNode: INode);
   end;
 
   INodeObservable = interface
@@ -40,8 +42,6 @@ procedure DeattachObserverFromSubject(aObserver: INodeObserver;
 
 implementation
 
-{ TNodeSubject }
-
 procedure AttachObserverToSubject(aObserver: INodeObserver;
   aSubject: INodeObservable);
 begin
@@ -67,7 +67,7 @@ var
 begin
   for aObserver in fObserverList do
   begin
-    aObserver.NodeConnected(aNode);
+    aObserver.DoNotify(msgtrefresh, aNode);
   end;
 end;
 
