@@ -3,19 +3,29 @@ unit NodeFormUnit;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
-  System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, BTCPeerNodeUnit, NodeObserverPattern,
-  Vcl.StdCtrls, IPeerNodeUnit;
+  Winapi.Windows,
+  Winapi.Messages,
+  System.SysUtils,
+  System.Variants,
+  System.Classes,
+  Vcl.Graphics,
+  Vcl.Controls,
+  Vcl.Forms,
+  Vcl.Dialogs,
+  BTCPeerNodeUnit,
+  NodeObserverPattern,
+  Vcl.StdCtrls,
+  PeerNodeUnit,
+  IPeerNodeUnit;
 
 type
   TNodeForm = class(TForm, INodeObserver)
     Label1: TLabel;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
-    fPeerNode: TBTCPeerNode;
+    fPeerNode: TPeerNode;
 
-    procedure SetNode(const Value: TBTCPeerNode);
+    procedure SetNode(const Value: TPeerNode);
     { Private declarations }
 
     procedure DoNotify(const msgtype: TMSGType; const aNode: INode);
@@ -23,7 +33,7 @@ type
     { Public declarations }
     destructor Destroy; override;
 
-    property Node: TBTCPeerNode write SetNode;
+    property Node: TPeerNode write SetNode;
   end;
 
 implementation
@@ -42,6 +52,7 @@ end;
 procedure TNodeForm.DoNotify(const msgtype: TMSGType; const aNode: INode);
 begin
   caption := 'connected' + aNode.GetIP;
+  Label1.Caption := aNode.getagent;
 end;
 
 procedure TNodeForm.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -49,7 +60,7 @@ begin
   Action := caFree;
 end;
 
-procedure TNodeForm.SetNode(const Value: TBTCPeerNode);
+procedure TNodeForm.SetNode(const Value: TPeerNode);
 begin
   if fPeerNode <> Value then
   begin
@@ -64,6 +75,7 @@ begin
 
     AttachObserverToSubject(self, Value);
     caption := Value.PeerIp;
+    Label1.Caption := value.agent;
   end;
 
 end;

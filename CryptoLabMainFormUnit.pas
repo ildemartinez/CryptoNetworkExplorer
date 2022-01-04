@@ -3,15 +3,36 @@ unit CryptoLabMainFormUnit;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
-  System.Classes, Vcl.Graphics,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
-  Vcl.ExtCtrls, Vcl.AppEvnts,
-  BTCPeerDiscoveryUnit, BTCTypes, VirtualTrees, btcnetworkunit,
-  CryptoNetworkTreeViewUnit, Data.DB, Vcl.DBCtrls, Vcl.Menus,
-  System.Actions, Vcl.ActnList, Vcl.StdActns,
-  Vcl.PlatformDefaultStyleActnCtrls, Vcl.ActnMan, Vcl.ToolWin,
-  Vcl.ActnCtrls, Vcl.ActnMenus, System.ImageList, Vcl.ImgList;
+  Winapi.Windows,
+  Winapi.Messages,
+  System.SysUtils,
+  System.Variants,
+  System.Classes,
+  Vcl.Graphics,
+  Vcl.Controls,
+  Vcl.Forms,
+  Vcl.Dialogs,
+  Vcl.StdCtrls,
+  Vcl.ExtCtrls,
+  Vcl.AppEvnts,
+  BTCPeerDiscoveryUnit,
+  BTCTypes,
+  VirtualTrees,
+  btcnetworkunit,
+  CryptoNetworkTreeViewUnit,
+  Data.DB,
+  Vcl.DBCtrls,
+  Vcl.Menus,
+  System.Actions,
+  Vcl.ActnList,
+  Vcl.StdActns,
+  Vcl.PlatformDefaultStyleActnCtrls,
+  Vcl.ActnMan,
+  Vcl.ToolWin,
+  Vcl.ActnCtrls,
+  Vcl.ActnMenus,
+  System.ImageList,
+  Vcl.ImgList;
 
 type
   TForm1 = class(TForm)
@@ -75,8 +96,7 @@ begin
   inherited;
 end;
 
-procedure TForm1.OnVersionMessge(Sender: TObject;
-  versionMessage: TVersionMessage);
+procedure TForm1.OnVersionMessge(Sender: TObject; versionMessage: TVersionMessage);
 begin
   { *Memo1.Lines.add('version :' + versionMessage.protocol_version.ToString);
     Memo1.Lines.add('NodeServices :' + versionMessage.node_services.ToString);

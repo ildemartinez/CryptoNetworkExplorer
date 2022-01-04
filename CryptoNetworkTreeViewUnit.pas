@@ -3,9 +3,16 @@ unit CryptoNetworkTreeViewUnit;
 interface
 
 uses
-  System.SysUtils, System.Classes, System.Types, vcl.Menus,
-  BTCNetworkUnit, isubjectunit, BTCPeerNodeUnit, CryptoNetworkPopupMenuUnit,
-  NodeObserverPattern, ipeernodeunit,
+  System.SysUtils,
+  System.Classes,
+  System.Types,
+  vcl.Menus,
+  BTCNetworkUnit,
+  isubjectunit,
+  BTCPeerNodeUnit,
+  CryptoNetworkPopupMenuUnit,
+  NodeObserverPattern,
+  ipeernodeunit,
   VirtualTrees;
 
 type
@@ -21,34 +28,31 @@ type
 
   PTreeData = ^TTreeData; // This is a node example.
 
-  TCryptoNetworkTreeView = class(TCustomVirtualStringTree, INetworkObserver,
-    INodeObserver)
+  TCryptoNetworkTreeView = class(TCustomVirtualStringTree, INetworkObserver, INodeObserver)
   private
     fCryptonetwork: TBTCNetwork;
     // fPopupMenu: TCryptoNetworkPopupMenu;
     procedure setCryptoNetwork(const Value: TBTCNetwork);
 
-    procedure Notification(AComponent: TComponent;
-      Operation: TOperation); override;
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure upddate;
   protected
     procedure DoInitNode(Parent, Node: PVirtualNode;
       var InitStates: TVirtualNodeInitStates); override;
     procedure MenuItemClick(Sender: TObject);
-    procedure DoGetPopupmenu(Sender: TBaseVirtualTree; Node: PVirtualNode;
-      Column: TColumnIndex; const P: TPoint; var AskParent: Boolean;
-      var PopupMenu: TPopupMenu);
+    procedure MenuItemClickGetPeers(Sender: TObject);
+    procedure DoGetPopupmenu(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
+      const P: TPoint; var AskParent: Boolean; var PopupMenu: TPopupMenu);
 
     procedure NodeDblClick(Sender: TBaseVirtualTree; const HitInfo: THitInfo);
-    procedure DoGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
-      Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
+    procedure DoGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
+      TextType: TVSTTextType; var CellText: string);
     procedure DoInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
       var ChildCount: Cardinal);
-    procedure DoPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas;
-      Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
-    procedure GetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
-      Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean;
-      var ImageIndex: TImageIndex);
+    procedure DoPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode;
+      Column: TColumnIndex; TextType: TVSTTextType);
+    procedure GetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind;
+      Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
   public
     constructor Create(Owner: TComponent); override;
 
@@ -58,8 +62,7 @@ type
     // I
     procedure DoNotify(const msgtype: TMSGType; const aNode: INode);
   published
-    property CryptoNetwork: TBTCNetwork read fCryptonetwork
-      write setCryptoNetwork;
+    property CryptoNetwork: TBTCNetwork read fCryptonetwork write setCryptoNetwork;
   end;
 
 procedure Register;
@@ -86,19 +89,25 @@ var
 begin
   inherited;
 
-  // por el momento ponemos aquí las acciones
   PopupMenu := TCryptoNetworkPopupMenu.Create(self);
+  // por el momento ponemos aquí las acciones
   aMenuItem := TMenuItem.Create(self);
   aMenuItem.caption := 'Connect';
   aMenuItem.OnClick := MenuItemClick;
+  PopupMenu.items.add(aMenuItem);
+  //
 
+  // por el momento ponemos aquí las acciones
+  aMenuItem := TMenuItem.Create(self);
+  aMenuItem.caption := 'Get Peers';
+  aMenuItem.OnClick := MenuItemClickGetPeers;
   PopupMenu.items.add(aMenuItem);
   //
 
   NodeDataSize := SizeOf(TTreeData);
 
-  TreeOptions.SelectionOptions := TreeOptions.SelectionOptions +
-    [toRightClickSelect, // toLevelSelectConstraint,
+  TreeOptions.SelectionOptions := TreeOptions.SelectionOptions + [toRightClickSelect,
+  // toLevelSelectConstraint,
   tomultiselect, toSiblingSelectConstraint];
 
   OnGetText := DoGetText;
@@ -112,9 +121,8 @@ begin
   // RootNodeCount := 5;
 end;
 
-procedure TCryptoNetworkTreeView.DoGetPopupmenu(Sender: TBaseVirtualTree;
-  Node: PVirtualNode; Column: TColumnIndex; const P: TPoint;
-  var AskParent: Boolean; var PopupMenu: TPopupMenu);
+procedure TCryptoNetworkTreeView.DoGetPopupmenu(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Column: TColumnIndex; const P: TPoint; var AskParent: Boolean; var PopupMenu: TPopupMenu);
 var
   data, parentdata: PTreeData;
 begin
@@ -130,9 +138,8 @@ begin
   end;
 end;
 
-procedure TCryptoNetworkTreeView.DoGetText(Sender: TBaseVirtualTree;
-  Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
-  var CellText: string);
+procedure TCryptoNetworkTreeView.DoGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
 var
   data, parentdata: PTreeData;
 begin
@@ -151,8 +158,8 @@ begin
 
 end;
 
-procedure TCryptoNetworkTreeView.DoInitChildren(Sender: TBaseVirtualTree;
-  Node: PVirtualNode; var ChildCount: Cardinal);
+procedure TCryptoNetworkTreeView.DoInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  var ChildCount: Cardinal);
 var
   data, parentdata: PTreeData;
 begin
@@ -204,8 +211,7 @@ begin
 
 end;
 
-procedure TCryptoNetworkTreeView.DoNotify(const msgtype: TMSGType;
-  const aNode: INode);
+procedure TCryptoNetworkTreeView.DoNotify(const msgtype: TMSGType; const aNode: INode);
 var
   aVirtualNodeEnumerator: TVTVirtualNodeEnumerator;
   data: PTreeData;
@@ -225,9 +231,8 @@ begin
 
 end;
 
-procedure TCryptoNetworkTreeView.DoPaintText(Sender: TBaseVirtualTree;
-  const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
-  TextType: TVSTTextType);
+procedure TCryptoNetworkTreeView.DoPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas;
+  Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
 var
   data, parentdata: PTreeData;
 begin
@@ -242,23 +247,30 @@ begin
     ntnode:
       begin
         if data^.nodedata.Connected then
-          TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold]
-        else
-          TargetCanvas.Font.Style := TargetCanvas.Font.Style - [fsBold];
+        begin
+          TargetCanvas.Font.Color := clBlack;
+          TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold] - [fsItalic];
 
-        if data^.nodedata.serverconnected then
-          TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsItalic]
+        end
+        else if data^.nodedata.serverconnected then
+        begin
+
+          TargetCanvas.Font.Color := clBlack;
+          TargetCanvas.Font.Style := TargetCanvas.Font.Style - [fsItalic] - [fsBold];
+        end
         else
-          TargetCanvas.Font.Style := TargetCanvas.Font.Style - [fsItalic];
+        begin
+          TargetCanvas.Font.Color := clGray;
+          TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsItalic] - [fsBold];
+        end;
       end;
 
   end;
 
 end;
 
-procedure TCryptoNetworkTreeView.GetImageIndex(Sender: TBaseVirtualTree;
-  Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
-  var Ghosted: Boolean; var ImageIndex: TImageIndex);
+procedure TCryptoNetworkTreeView.GetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
+  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
 Var
   ResName: String;
   H: THandle;
@@ -287,6 +299,24 @@ begin
   end;
 end;
 
+procedure TCryptoNetworkTreeView.MenuItemClickGetPeers(Sender: TObject);
+var
+  aVirtualNodeEnumerator: TVTVirtualNodeEnumerator;
+  data: PTreeData;
+begin
+  aVirtualNodeEnumerator := SelectedNodes.GetEnumerator;
+
+  while aVirtualNodeEnumerator.MoveNext do
+  begin
+    data := GetNodeData(aVirtualNodeEnumerator.Current);
+    if data^.node_type = ntnode then
+    begin
+      data^.nodedata.GetPeers();
+    end
+  end;
+
+end;
+
 procedure TCryptoNetworkTreeView.NewBTCAgentAdded(aBTCAgent: TBTCPeerNode);
 begin
 
@@ -299,8 +329,7 @@ begin
 
 end;
 
-procedure TCryptoNetworkTreeView.NodeDblClick(Sender: TBaseVirtualTree;
-  const HitInfo: THitInfo);
+procedure TCryptoNetworkTreeView.NodeDblClick(Sender: TBaseVirtualTree; const HitInfo: THitInfo);
 var
   aVirtualNodeEnumerator: TVTVirtualNodeEnumerator;
   data: PTreeData;
@@ -322,8 +351,7 @@ begin
 
 end;
 
-procedure TCryptoNetworkTreeView.Notification(AComponent: TComponent;
-  Operation: TOperation);
+procedure TCryptoNetworkTreeView.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   inherited;
 

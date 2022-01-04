@@ -11,6 +11,10 @@ type
     function Connected: boolean;
     // Get the server node IP
     function GetIP: string;
+
+    procedure GetPeers();
+
+    function GetAgent : string;
   end;
 
   IBTCPeerNode = interface(INode)

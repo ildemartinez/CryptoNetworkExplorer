@@ -3,26 +3,29 @@ unit BTCPeerNodeUnit;
 interface
 
 uses
-  System.SysUtils, System.Classes,
+  System.SysUtils,
+  System.Classes,
   System.Generics.Collections,
   IPeerNodeUnit,
   PeerNodeUnit,
   NodeObserverPattern,
-  ipwcore, ipwtypes, ipwipport, btctypes;
+  ipwcore,
+  ipwtypes,
+  ipwipport,
+  btctypes,
+  SeSHA256;
 
 type
 
-  TMessageEventVersion = procedure(Sender: TObject;
-    versionMessage: TVersionMessage) of object;
+  TMessageEventVersion = procedure(Sender: TObject; versionMessage: TVersionMessage) of object;
   TMessageEventVerack = procedure(Sender: TObject) of object;
 
   TMessageEvent = procedure(Sender: TObject; const aMessage: string) of Object;
 
-  TBTCPeerNode = class(TPeerNode, IBTCPeerNode)
+  TBTCPeerNode = class(TPeerNode, Inode, IBTCPeerNode)
   strict private
 
     fipwIPPort1: TipwIPPort;
-    fUserAgent: string;
 
     fMessage: TMessageEvent;
 
@@ -30,20 +33,17 @@ type
     fMessageVersionEvent: TMessageEventVersion;
     fMessageVerackEvent: TMessageEventVerack;
 
-    procedure Connected(Sender: TObject; StatusCode: Integer;
-      const Description: String);
-    procedure DataIn(Sender: TObject; Text: String; TextB: TBytes;
-      EOL: boolean);
-    procedure ConnectionStatus(Sender: TObject; const ConnectionEvent: string;
-      StatusCode: Integer; const Description: string);
-    procedure ReadyToSend(Sender: TObject);
-    procedure Error(Sender: TObject; ErrorCode: Integer;
+    procedure Connected(Sender: TObject; StatusCode: Integer; const Description: String);
+    procedure DataIn(Sender: TObject; Text: String; TextB: TBytes; EOL: boolean);
+    procedure ConnectionStatus(Sender: TObject; const ConnectionEvent: string; StatusCode: Integer;
       const Description: string);
+    procedure ReadyToSend(Sender: TObject);
+    procedure Error(Sender: TObject; ErrorCode: Integer; const Description: string);
 
-    procedure DoMessageDetected(const aMessageType: string;
-      const apayload: TBytes);
+    procedure DoMessageDetected(const aMessageType: string; const apayload: TBytes);
 
     procedure VerackMessage(Sender: TObject);
+    procedure SendMessage(const messagename: ansistring; const payload: TBytes);
 
   public
     constructor Create(OWner: TComponent); override;
@@ -52,8 +52,9 @@ type
     procedure Connect;
     procedure Disconnect;
 
+    procedure GetPeers(); override;
   published
-    property UserAgent: string read fUserAgent;
+    // property UserAgent: string read fUserAgent;
 
     property OnMessage: TMessageEvent read fMessage write fMessage;
 
@@ -69,7 +70,9 @@ procedure Register;
 implementation
 
 uses
-  Winapi.Windows, dateutils;
+  Winapi.Windows,
+  dateutils,
+  dialogs;
 
 function StringBytesToTBytes(const s: string): TBytes;
 var
@@ -87,20 +90,19 @@ end;
 
 procedure TBTCPeerNode.Connect;
 begin
-  fipwIPPort1.Connect(PeerIp, 8333);
+  if not fipwIPPort1.Connected then
+    fipwIPPort1.Connect(PeerIp, 8333);
 end;
 
-procedure TBTCPeerNode.Connected(Sender: TObject; StatusCode: Integer;
-  const Description: String);
+procedure TBTCPeerNode.Connected(Sender: TObject; StatusCode: Integer; const Description: String);
 begin
   fServerConnected := true;
 
   ImplNodeObsevable.Notify(msgtserverconnected, self)
 end;
 
-procedure TBTCPeerNode.ConnectionStatus(Sender: TObject;
-  const ConnectionEvent: string; StatusCode: Integer;
-  const Description: string);
+procedure TBTCPeerNode.ConnectionStatus(Sender: TObject; const ConnectionEvent: string;
+  StatusCode: Integer; const Description: string);
 begin
 
 end;
@@ -121,8 +123,7 @@ begin
   // aBTCThreadMonitor :=  TBTCThreadMonitor.Create(fIp,self);
 end;
 
-procedure TBTCPeerNode.DataIn(Sender: TObject; Text: String; TextB: TBytes;
-  EOL: boolean);
+procedure TBTCPeerNode.DataIn(Sender: TObject; Text: String; TextB: TBytes; EOL: boolean);
 var
   k, j: Integer;
   status: Integer;
@@ -233,8 +234,7 @@ begin
 
 end;
 
-procedure TBTCPeerNode.DoMessageDetected(const aMessageType: string;
-  const apayload: TBytes);
+procedure TBTCPeerNode.DoMessageDetected(const aMessageType: string; const apayload: TBytes);
 var
   versionMessage: TVersionRawMessage;
   pversionMessage: ^TVersionRawMessage;
@@ -258,18 +258,15 @@ begin
       (unixtodatetime(UInt64(versionMessage.node_timestamp)));
 
     aVersionMessage.receiving_node_ip := '....';
-    aVersionMessage.receiving_node_port :=
-      swap(versionMessage.receiving_node_port);
+    aVersionMessage.receiving_node_port := swap(versionMessage.receiving_node_port);
 
     aVersionMessage.emmiting_node_ip := '..-..';
-    aVersionMessage.emmiting_node_port :=
-      swap(versionMessage.emmiting_node_port);
+    aVersionMessage.emmiting_node_port := swap(versionMessage.emmiting_node_port);
 
     // get User Agent
     aVersionMessage.user_agent := '';
     for k := 1 to versionMessage.user_agent[0] do
-      aVersionMessage.user_agent := aVersionMessage.user_agent +
-        char(versionMessage.user_agent[k]);
+      aVersionMessage.user_agent := aVersionMessage.user_agent + char(versionMessage.user_agent[k]);
     fUserAgent := aVersionMessage.user_agent;
 
     if assigned(fMessageVersionEvent) then
@@ -288,51 +285,72 @@ begin
     fMessage(self, aMessageType);
 end;
 
-procedure TBTCPeerNode.Error(Sender: TObject; ErrorCode: Integer;
-  const Description: string);
+procedure TBTCPeerNode.Error(Sender: TObject; ErrorCode: Integer; const Description: string);
 begin
 
 end;
 
-procedure TBTCPeerNode.ReadyToSend(Sender: TObject);
+procedure TBTCPeerNode.GetPeers;
 var
   tb: TBytes;
-  pHeader: ^THeader;
-  aHeader: THeader;
+  pHeader: ^TBTCHeader;
+  aHeader: TBTCHeader;
+  ttb: THeader;
 begin
-  aHeader := BuildHeader('version');
 
-  (* new(pHeader);
-    pHeader^.start_string := $D9B4BEF9;
-
-    pHeader^.command_name[1] := 'v';
-    pHeader^.command_name[2] := 'e';
-    pHeader^.command_name[3] := 'r';
-    pHeader^.command_name[4] := 's';
-    pHeader^.command_name[5] := 'i';
-    pHeader^.command_name[6] := 'o';
-    pHeader^.command_name[7] := 'n';
-    pHeader^.command_name[8] := char(0);
-    pHeader^.command_name[9] := char(0);
-    pHeader^.command_name[10] := char(0);
-    pHeader^.command_name[11] := char(0);
-    pHeader^.command_name[12] := char(0);
-
-    pHeader^.payload_size := $66;
-    pHeader^.checksum := $9B3DBA94;
-  *)
-  SetLength(tb, sizeof(THeader));
-  CopyMemory(tb, @aHeader, sizeof(THeader));
+  SendMessage('getaddr',nil);
 
   // showmessage(Description);
-  // tb := StringBytesToTBytes('f9beb4d976657273696f6e00000000006600000094ba3d9b');
-  // tb := StringBytesToTBytes('9c');
-  fipwIPPort1.send(tb);
+//  tb := StringBytesToTBytes('f9beb4d9676574616464720000000000000000005df6e0e2');
 
-  tb := StringBytesToTBytes('80110100' + '0804000000000000' +
-    '0defbc6100000000090400000000000000000000000000000000ffff23c121bf208d0804000000000000000000000000000000000000000000000000fdba00e1964f2006102f5361746f7368693a32322e302e302f25c2030001');
-  fipwIPPort1.send(tb);
+//  fipwIPPort1.send(tb);
 
+end;
+
+procedure TBTCPeerNode.ReadyToSend(Sender: TObject);
+begin
+  SendMessage('version', StringBytesToTBytes('80110100' + '0804000000000000' +
+    '0defbc6100000000090400000000000000000000000000000000ffff23c121bf208d0804000000000000000000000000000000000000000000000000fdba00e1964f2006102f5361746f7368693a32322e302e302f25c2030001')
+    );
+end;
+
+procedure TBTCPeerNode.SendMessage(const messagename: ansistring; const payload: TBytes);
+var
+  tb: TBytes;
+  aHeader: TBTCHeader;
+  ams: TMemoryStream;
+  res: ansistring;
+  k: Integer;
+begin
+  aHeader.start_string := BTC_MAIN_MAGIC_VALUE;
+  aHeader.command_name := StringToCommandName(messagename);
+  aHeader.apayload := payload;
+
+  ams := TMemoryStream.Create;
+  try
+    // Guardamos el texto en un stream
+    ams.Position := 0;
+    ams.WriteBuffer(PAnsiChar(aHeader.apayload)^, length(aHeader.apayload));
+    ams.Position := 0;
+    // Calculamos el hash del stream
+    res := SHA256ToBinaryStr(CalcSHA256(SHA256ToBinaryStr(CalcSHA256(ams))));
+
+    aHeader.payload_size := length(aHeader.apayload);
+    aHeader.checksum[1] := res[1];
+    aHeader.checksum[2] := res[2];
+    aHeader.checksum[3] := res[3];
+    aHeader.checksum[4] := res[4];
+  finally
+    ams.free;
+  end;
+
+  SetLength(tb, BTC_HEADER_SIZE + aHeader.payload_size);
+  CopyMemory(tb, @aHeader, BTC_HEADER_SIZE);
+
+  for k := 0 to aHeader.payload_size - 1 do
+    tb[BTC_HEADER_SIZE + k] := aHeader.apayload[k];
+
+  fipwIPPort1.send(tb);
 end;
 
 procedure TBTCPeerNode.VerackMessage(Sender: TObject);

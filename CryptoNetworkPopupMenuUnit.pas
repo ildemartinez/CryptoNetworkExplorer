@@ -3,7 +3,8 @@ unit CryptoNetworkPopupMenuUnit;
 interface
 
 uses
-  Vcl.Menus, classes;
+  Vcl.Menus,
+  classes;
 
 type
   TCryptoNetworkPopupMenu = class(TPopupMenu)

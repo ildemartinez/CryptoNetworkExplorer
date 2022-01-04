@@ -35,21 +35,17 @@ type
     procedure Notify(const msgtype: TMSGType; aNode: INode);
   end;
 
-procedure AttachObserverToSubject(aObserver: INodeObserver;
-  aSubject: INodeObservable);
-procedure DeattachObserverFromSubject(aObserver: INodeObserver;
-  aSubject: INodeObservable);
+procedure AttachObserverToSubject(aObserver: INodeObserver; aSubject: INodeObservable);
+procedure DeattachObserverFromSubject(aObserver: INodeObserver; aSubject: INodeObservable);
 
 implementation
 
-procedure AttachObserverToSubject(aObserver: INodeObserver;
-  aSubject: INodeObservable);
+procedure AttachObserverToSubject(aObserver: INodeObserver; aSubject: INodeObservable);
 begin
   aSubject.RegisterObserver(aObserver);
 end;
 
-procedure DeattachObserverFromSubject(aObserver: INodeObserver;
-  aSubject: INodeObservable);
+procedure DeattachObserverFromSubject(aObserver: INodeObserver; aSubject: INodeObservable);
 begin
   aSubject.UnregisterObserver(aObserver);
 end;

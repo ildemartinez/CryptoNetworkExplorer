@@ -1,7 +1,7 @@
 object Form1: TForm1
   Left = 0
   Top = 0
-  Caption = 'Form1'
+  Caption = 'CryptoNetwork Explorer'
   ClientHeight = 552
   ClientWidth = 844
   Color = clBtnFace
@@ -19,6 +19,7 @@ object Form1: TForm1
     Top = 0
     Width = 844
     Height = 25
+    UseSystemFont = False
     ActionManager = ActionManager1
     Caption = 'ActionMainMenuBar1'
     Color = clMenuBar
@@ -27,15 +28,11 @@ object Form1: TForm1
     ColorMap.BtnSelectedFont = clBlack
     ColorMap.UnusedColor = clWhite
     Font.Charset = DEFAULT_CHARSET
-    Font.Color = clWindowText
+    Font.Color = clBlack
     Font.Height = -12
     Font.Name = 'Segoe UI'
     Font.Style = []
     Spacing = 0
-    ExplicitLeft = 176
-    ExplicitTop = 128
-    ExplicitWidth = 150
-    ExplicitHeight = 29
   end
   object ActionManager1: TActionManager
     ActionBars = <
@@ -45,6 +42,7 @@ object Form1: TForm1
             Items = <
               item
                 Action = Action2
+                Caption = '&Exit'
               end>
             Caption = '&File'
           end
