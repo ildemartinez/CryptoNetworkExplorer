@@ -43,6 +43,8 @@ type
     procedure DoMessageDetected(const aMessageType: string; const apayload: TBytes);
 
     procedure VerackMessage(Sender: TObject);
+
+    procedure SendCommand(const messagename: ansistring);
     procedure SendMessage(const messagename: ansistring; const payload: TBytes);
 
   public
@@ -280,6 +282,8 @@ begin
       fMessageVerackEvent(self);
 
     ImplNodeObsevable.Notify(msgtprotocolconnected, self);
+
+    sendcommand('verack');
   end
   else if assigned(fMessage) then
     fMessage(self, aMessageType);
@@ -291,20 +295,11 @@ begin
 end;
 
 procedure TBTCPeerNode.GetPeers;
-var
-  tb: TBytes;
-  pHeader: ^TBTCHeader;
-  aHeader: TBTCHeader;
-  ttb: THeader;
 begin
 
-  SendMessage('getaddr',nil);
+  SendCommand('getaddr');
 
-  // showmessage(Description);
-//  tb := StringBytesToTBytes('f9beb4d9676574616464720000000000000000005df6e0e2');
-
-//  fipwIPPort1.send(tb);
-
+  // tb := StringBytesToTBytes('f9beb4d9 676574616464720000000000 00000000 5df6e0e2');
 end;
 
 procedure TBTCPeerNode.ReadyToSend(Sender: TObject);
@@ -312,6 +307,29 @@ begin
   SendMessage('version', StringBytesToTBytes('80110100' + '0804000000000000' +
     '0defbc6100000000090400000000000000000000000000000000ffff23c121bf208d0804000000000000000000000000000000000000000000000000fdba00e1964f2006102f5361746f7368693a32322e302e302f25c2030001')
     );
+end;
+
+procedure TBTCPeerNode.SendCommand(const messagename: ansistring);
+var
+  tb: TBytes;
+  aHeader: TBTCHeader;
+  ams: TMemoryStream;
+  res: ansistring;
+  k: Integer;
+begin
+  aHeader.start_string := BTC_MAIN_MAGIC_VALUE;
+  aHeader.command_name := StringToCommandName(messagename);
+
+  aHeader.payload_size := 0;
+  aHeader.checksum[1] := char($5D);
+  aHeader.checksum[2] := char($F6);
+  aHeader.checksum[3] := char($E0);
+  aHeader.checksum[4] := char($E2);
+
+  SetLength(tb, BTC_HEADER_SIZE);
+  CopyMemory(tb, @aHeader, BTC_HEADER_SIZE);
+
+  fipwIPPort1.send(tb);
 end;
 
 procedure TBTCPeerNode.SendMessage(const messagename: ansistring; const payload: TBytes);
