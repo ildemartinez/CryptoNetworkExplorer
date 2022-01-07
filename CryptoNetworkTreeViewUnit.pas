@@ -31,18 +31,22 @@ type
   TCryptoNetworkTreeView = class(TCustomVirtualStringTree, INetworkObserver, INodeObserver)
   private
     fCryptonetwork: TBTCNetwork;
+    fAsTree: boolean;
+
     // fPopupMenu: TCryptoNetworkPopupMenu;
     procedure setCryptoNetwork(const Value: TBTCNetwork);
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     procedure upddate;
+    procedure SetOptions(const Value: boolean);
+    procedure SetAsTree(const Value: boolean);
   protected
     procedure DoInitNode(Parent, Node: PVirtualNode;
       var InitStates: TVirtualNodeInitStates); override;
     procedure MenuItemClick(Sender: TObject);
     procedure MenuItemClickGetPeers(Sender: TObject);
     procedure DoGetPopupmenu(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-      const P: TPoint; var AskParent: Boolean; var PopupMenu: TPopupMenu);
+      const P: TPoint; var AskParent: boolean; var PopupMenu: TPopupMenu);
 
     procedure NodeDblClick(Sender: TBaseVirtualTree; const HitInfo: THitInfo);
     procedure DoGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
@@ -52,7 +56,7 @@ type
     procedure DoPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType);
     procedure GetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind;
-      Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
+      Column: TColumnIndex; var Ghosted: boolean; var ImageIndex: TImageIndex);
   public
     constructor Create(Owner: TComponent); override;
 
@@ -63,6 +67,7 @@ type
     procedure DoNotify(const msgtype: TMSGType; const aNode: INode);
   published
     property CryptoNetwork: TBTCNetwork read fCryptonetwork write setCryptoNetwork;
+    property AsTree: boolean write SetAsTree;
   end;
 
 procedure Register;
@@ -76,6 +81,7 @@ uses
   vcl.ImgList,
   dialogs,
   NodeFormUnit,
+  networkformunit,
   Ut_images;
 
 procedure Register;
@@ -122,7 +128,7 @@ begin
 end;
 
 procedure TCryptoNetworkTreeView.DoGetPopupmenu(Sender: TBaseVirtualTree; Node: PVirtualNode;
-  Column: TColumnIndex; const P: TPoint; var AskParent: Boolean; var PopupMenu: TPopupMenu);
+  Column: TColumnIndex; const P: TPoint; var AskParent: boolean; var PopupMenu: TPopupMenu);
 var
   data, parentdata: PTreeData;
 begin
@@ -142,20 +148,44 @@ procedure TCryptoNetworkTreeView.DoGetText(Sender: TBaseVirtualTree; Node: PVirt
   Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
 var
   data, parentdata: PTreeData;
+
 begin
   data := GetNodeData(Node);
   parentdata := GetNodeData(Node.Parent);
 
-  case data^.node_type of
-    ntroot:
-      CellText := 'Networks';
-    ntnetwork:
-      CellText := 'BTC Network';
-    ntnode:
-      // if data^.nodedata <> nil then
-      CellText := data^.nodedata.PeerIp;
-  end;
-
+  if fAsTree then
+  begin
+    case data^.node_type of
+      ntroot:
+        CellText := 'Networks';
+      ntnetwork:
+        CellText := 'BTC Network';
+      ntnode:
+        // if data^.nodedata <> nil then
+        CellText := data^.nodedata.PeerIp;
+    end;
+  end
+  else
+    case Column of
+      0:
+        begin
+          case data^.node_type of
+            ntnetwork:
+              CellText := '';
+            ntnode:
+              CellText := data^.nodedata.PeerIp;
+          end;
+        end;
+      1:
+        begin
+          case data^.node_type of
+            ntnetwork:
+              CellText := '';
+            ntnode:
+              CellText := data^.nodedata.Agent;
+          end;
+        end;
+    end;
 end;
 
 procedure TCryptoNetworkTreeView.DoInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
@@ -168,14 +198,29 @@ begin
 
   if data <> nil then
   begin
-    case data^.node_type of
-      ntroot:
-        ChildCount := 1;
-      ntnetwork:
-        if CryptoNetwork <> nil then
-          ChildCount := CryptoNetwork.count;
-      ntnode:
-        ChildCount := 0;
+
+    if fAsTree then
+    begin
+
+      case data^.node_type of
+        ntroot:
+          ChildCount := 1;
+        ntnetwork:
+          if CryptoNetwork <> nil then
+            ChildCount := CryptoNetwork.count;
+        ntnode:
+          ChildCount := 0;
+      end;
+    end
+    else
+    begin
+      case data^.node_type of
+        ntnetwork:
+          if CryptoNetwork <> nil then
+            ChildCount := CryptoNetwork.count;
+        ntnode:
+          ChildCount := 0;
+      end;
     end;
   end;
 end;
@@ -188,26 +233,47 @@ begin
   data := GetNodeData(Node);
   parentdata := GetNodeData(Parent);
 
-  if parentdata = nil then
+  if fAsTree then
   begin
-    data^.node_type := ntroot;
-    Node.States := Node.States + [vsHasChildren, vsExpanded];
+    if parentdata = nil then
+    begin
+      data^.node_type := ntroot;
+      Node.States := Node.States + [vsHasChildren, vsExpanded];
+    end
+    else
+      case parentdata^.node_type of
+        ntroot:
+          begin
+            data^.node_type := ntnetwork;
+            data^.networkdata := self.fCryptonetwork;
+            Node.States := Node.States + [vsHasChildren, vsExpanded];
+          end;
+        ntnetwork:
+          begin
+            data^.node_type := ntnode;
+            data^.nodedata := CryptoNetwork.nodes[Node.Index];
+            AttachObserverToSubject(self, CryptoNetwork.nodes[Node.Index]);
+          end;
+      end;
   end
   else
-    case parentdata^.node_type of
-      ntroot:
-        begin
-          data^.node_type := ntnetwork;
-          data^.networkdata := self.fCryptonetwork;
-          Node.States := Node.States + [vsHasChildren, vsExpanded];
-        end;
-      ntnetwork:
-        begin
-          data^.node_type := ntnode;
-          data^.nodedata := CryptoNetwork.nodes[Node.Index];
-          AttachObserverToSubject(self, CryptoNetwork.nodes[Node.Index]);
-        end;
-    end;
+  begin
+    if parentdata = nil then
+    begin
+      data^.node_type := ntnetwork;
+      data^.networkdata := self.fCryptonetwork;
+      Node.States := Node.States + [vsHasChildren, vsExpanded];
+    end
+    else
+      case parentdata^.node_type of
+        ntnetwork:
+          begin
+            data^.node_type := ntnode;
+            data^.nodedata := CryptoNetwork.nodes[Node.Index];
+            AttachObserverToSubject(self, CryptoNetwork.nodes[Node.Index]);
+          end;
+      end;
+  end;
 
 end;
 
@@ -270,7 +336,7 @@ begin
 end;
 
 procedure TCryptoNetworkTreeView.GetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
-  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: Boolean; var ImageIndex: TImageIndex);
+  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: boolean; var ImageIndex: TImageIndex);
 Var
   ResName: String;
   H: THandle;
@@ -346,7 +412,16 @@ begin
         Node := data^.nodedata;
         show();
       end;
+    end
+    else if data^.node_type = ntnetwork then
+    begin
+      with TNetworkForm.Create(self) do
+      begin
+        Network := data^.networkdata;
+        show();
+      end;
     end;
+
   end;
 
 end;
@@ -360,6 +435,28 @@ begin
       CryptoNetwork := nil;
 end;
 
+procedure TCryptoNetworkTreeView.SetAsTree(const Value: boolean);
+begin
+  fAsTree := Value;
+
+  // As Tree
+  if Value = true then
+  begin
+    TreeOptions.PaintOptions := TreeOptions.PaintOptions + [toShowRoot, toShowTreeLines];
+    TreeOptions.SelectionOptions := TreeOptions.SelectionOptions - [toextendedfocus];
+    TreeOptions.MiscOptions := TreeOptions.MiscOptions - [toToggleondblclick];
+
+  end
+  // as grid
+  else
+  begin
+    TreeOptions.PaintOptions := TreeOptions.PaintOptions - [toShowRoot, toShowTreeLines] + [toHotTrack , tohidefocusrect, toshowhorzgridlines, toshowvertgridlines] ;
+    TreeOptions.SelectionOptions := TreeOptions.SelectionOptions + [toFullRowSelect ];
+    Header.Options := Header.Options - [hocolumnresize];
+    TreeOptions.MiscOptions := TreeOptions.MiscOptions + [toGridExtensions];
+  end;
+end;
+
 procedure TCryptoNetworkTreeView.setCryptoNetwork(const Value: TBTCNetwork);
 begin
   fCryptonetwork := Value;
@@ -370,6 +467,11 @@ begin
     Value.FreeNotification(self);
     Value.RegisterObserver(self);
   end;
+end;
+
+procedure TCryptoNetworkTreeView.SetOptions(const Value: boolean);
+begin
+
 end;
 
 procedure TCryptoNetworkTreeView.upddate;

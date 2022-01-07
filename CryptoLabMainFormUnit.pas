@@ -87,6 +87,7 @@ begin
   fCryptoNetworkTreeView1 := TCryptoNetworkTreeView.Create(self);
   fCryptoNetworkTreeView1.parent := self;
   fCryptoNetworkTreeView1.Align := alLeft;
+  fCryptoNetworkTreeView1.AsTree := true;
   fCryptoNetworkTreeView1.CryptoNetwork := self.fCryptoNetwork;
 end;
 

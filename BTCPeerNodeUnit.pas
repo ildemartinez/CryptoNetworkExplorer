@@ -283,7 +283,7 @@ begin
 
     ImplNodeObsevable.Notify(msgtprotocolconnected, self);
 
-    sendcommand('verack');
+    SendCommand('verack');
   end
   else if assigned(fMessage) then
     fMessage(self, aMessageType);
@@ -304,9 +304,19 @@ end;
 
 procedure TBTCPeerNode.ReadyToSend(Sender: TObject);
 begin
-  SendMessage('version', StringBytesToTBytes('80110100' + '0804000000000000' +
-    '0defbc6100000000090400000000000000000000000000000000ffff23c121bf208d0804000000000000000000000000000000000000000000000000fdba00e1964f2006102f5361746f7368693a32322e302e302f25c2030001')
-    );
+  SendMessage('version', StringBytesToTBytes( //
+    '80110100' + // version
+//    '0804000000000000' + // services
+    '0004000000000000' + // services
+    '0defbc6100000000' + //
+    '090400000000000000000000000000000000ffff23c121bf208d' + // addr_recv
+    '0804000000000000000000000000000000000000000000000000' + // addr_from
+    'fdba00e1964f2006' + // nonce
+    '10' + // 16 long
+    '2f5361746f7368693a32322e302e302f' + // s
+    '25c20300' + // start_height
+    '01' // relay
+    ));
 end;
 
 procedure TBTCPeerNode.SendCommand(const messagename: ansistring);
