@@ -1,6 +1,6 @@
-# Cryptocurrency Components for Delphi
+# Cripto Network Explorer
 
-Some Cryptocurrency component to use in Delphi development
+Some Cryptocurrency component to use in Delphi development and for build Crypto Network Explorer
 
 
 
