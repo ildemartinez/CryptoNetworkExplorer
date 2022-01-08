@@ -27,8 +27,8 @@ type
   private
     fObserverList: Tlist<INodeObserver>;
 
-    destructor Destroy; override;
   public
+    destructor Destroy; override;
     procedure RegisterObserver(aObserver: INodeObserver);
     procedure UnregisterObserver(aObserver: INodeObserver);
 

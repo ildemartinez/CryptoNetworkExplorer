@@ -14,7 +14,7 @@ type
 
     procedure GetPeers();
 
-    function GetAgent : string;
+    function GetAgent: string;
   end;
 
   IBTCPeerNode = interface(INode)

@@ -52,7 +52,7 @@ end;
 procedure TNodeForm.DoNotify(const msgtype: TMSGType; const aNode: INode);
 begin
   caption := 'connected' + aNode.GetIP;
-  Label1.Caption := aNode.getagent;
+  Label1.caption := aNode.getagent;
 end;
 
 procedure TNodeForm.FormClose(Sender: TObject; var Action: TCloseAction);
@@ -75,7 +75,7 @@ begin
 
     AttachObserverToSubject(self, Value);
     caption := Value.PeerIp;
-    Label1.Caption := value.agent;
+    Label1.caption := Value.agent;
   end;
 
 end;

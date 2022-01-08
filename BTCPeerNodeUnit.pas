@@ -130,12 +130,14 @@ var
   k, j: Integer;
   status: Integer;
   aMessage: string;
-  alength, checksum: cardinal;
+  alength : cardinal;
+//  checksum: cardinal;
   payload: TBytes;
 begin
 
   k := 0;
   status := 0;
+  alength := 0;
 
   while k < length(TextB) do
   begin
@@ -189,8 +191,8 @@ begin
       6:
         begin
 
-          /// Please get checksum
-          checksum := TextB[k] + TextB[k + 1] + TextB[k + 2] + TextB[k + 3];
+          /// Please get checksum (hay que calcularlo)
+          // checksum := TextB[k] + TextB[k + 1] + TextB[k + 2] + TextB[k + 3];
 
           k := k + 4;
 
@@ -241,12 +243,7 @@ var
   versionMessage: TVersionRawMessage;
   pversionMessage: ^TVersionRawMessage;
   aVersionMessage: TVersionMessage;
-  t: UInt64;
-  aDate: TDatetime;
   k: Integer;
-
-  aObserver: INodeObserver;
-
 begin
   if aMessageType = MESSAGE_TYPE_VERSION then
   begin
@@ -323,9 +320,6 @@ procedure TBTCPeerNode.SendCommand(const messagename: ansistring);
 var
   tb: TBytes;
   aHeader: TBTCHeader;
-  ams: TMemoryStream;
-  res: ansistring;
-  k: Integer;
 begin
   aHeader.start_string := BTC_MAIN_MAGIC_VALUE;
   aHeader.command_name := StringToCommandName(messagename);

@@ -22,8 +22,6 @@ type
     fServerConnected: boolean;
     fConnected: boolean;
 
-
-
     property ImplNodeObsevable: TNodeObservable read fImplNodeObsevable write fImplNodeObsevable
       implements INodeObservable;
   protected
@@ -35,7 +33,6 @@ type
 
     function ServerConnected: boolean;
     function Connected: boolean;
-
 
   published
     property PeerIp: string read GetIP write SetPeerIP;
@@ -72,7 +69,6 @@ end;
 
 procedure TPeerNode.GetPeers;
 begin
-
 
 end;
 

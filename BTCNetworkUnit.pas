@@ -15,7 +15,6 @@ type
 
     fBTCPeerDiscovery: TBTCPeerDiscovery;
     fBTCAgents: Tlist<TBTCPeerNode>;
-    fMaxPeers: cardinal;
 
     function GetMaxPeers: cardinal;
     procedure SetMaxPeers(const Value: cardinal);
@@ -27,7 +26,7 @@ type
     fMessageVersionEvent: TMessageEventVersion;
     function getcount: cardinal;
     function GetNodes(index: integer): TBTCPeerNode;
-    procedure NodeConnected;
+//    procedure NodeConnected;
 
   public
     procedure AttachToSubject(aINodeSubject: INodeObservable);
@@ -124,10 +123,6 @@ begin
   result := self.fBTCAgents[index];
 end;
 
-procedure TBTCNetwork.NodeConnected;
-begin
-
-end;
 
 procedure TBTCNetwork.NotifyNewBTCAgent(const aBTCAgent: TBTCPeerNode);
 var

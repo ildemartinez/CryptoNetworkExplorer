@@ -20,6 +20,7 @@ uses
 
 type
   TNetworkForm = class(TForm, INetworkObserver)
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     ftree: tcryptonetworktreeview;
     fNetwork: TBTCNetwork;
@@ -66,6 +67,11 @@ begin
 
   ftree.EndUpdate;
 
+end;
+
+procedure TNetworkForm.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  Action := caFree;
 end;
 
 procedure TNetworkForm.NewBTCAgentAdded(aBTCAgent: TBTCPeerNode);
