@@ -46,8 +46,8 @@ begin
   inherited;
 
   FLoadedBitmaps := TStringList.Create;
-  Height := 24;
-  Width := 24;
+  Height := 16;
+  Width := 16;
 
 end;
 

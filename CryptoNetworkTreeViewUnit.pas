@@ -52,8 +52,8 @@ type
       TextType: TVSTTextType; var CellText: string);
     procedure MyDoInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
       var ChildCount: Cardinal);
-    procedure MyDoPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas; Node: PVirtualNode;
-      Column: TColumnIndex; TextType: TVSTTextType);
+    procedure MyDoPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas;
+      Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
     procedure MyGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind;
       Column: TColumnIndex; var Ghosted: boolean; var ImageIndex: TImageIndex);
   public
@@ -79,7 +79,6 @@ uses
   dialogs,
   NodeFormUnit,
   networkformunit,
-  // Ut_images,
   st4makers.Util.ImageListFromResource;
 
 procedure Register;
@@ -274,8 +273,8 @@ begin
 
 end;
 
-procedure TCryptoNetworkTreeView.MyDoPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas;
-  Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
+procedure TCryptoNetworkTreeView.MyDoPaintText(Sender: TBaseVirtualTree;
+  const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
 var
   data: PTreeData;
 begin
@@ -312,14 +311,20 @@ begin
 end;
 
 procedure TCryptoNetworkTreeView.MyGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
-  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: boolean; var ImageIndex: System.UITypes.TImageIndex);
+  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: boolean;
+  var ImageIndex: System.UITypes.TImageIndex);
 var
   data: PTreeData;
 begin
   data := GetNodeData(Node);
 
-  if (Kind <> ikstate) and (data^.node_type = ntroot) and (Column = -1) then
-    ImageIndex := GetGlobalImageListFromResource.GetImageIndexByName('PROJECT');
+  if (Kind <> ikstate) then
+  begin
+    if (data^.node_type = ntroot) and (Column = -1) then
+      ImageIndex := GetGlobalImageListFromResource.GetImageIndexByName('PROJECT')
+    else if (data^.node_type = ntnode) then
+      ImageIndex := GetGlobalImageListFromResource.GetImageIndexByName('NODE_BTC');
+  end;
 end;
 
 procedure TCryptoNetworkTreeView.MenuItemClick(Sender: TObject);
