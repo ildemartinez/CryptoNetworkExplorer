@@ -29,7 +29,8 @@ type
 
   PTreeData = ^TTreeData;
 
-  TCryptoNetworkTreeView = class(TCustomVirtualStringTree, INetworkObserver, INodeObserver)
+  TCryptoNetworkTreeView = class(TCustomVirtualStringTree, INetworkObserver,
+    INodeObserver)
   private
     fCryptonetwork: TBTCNetwork;
     fAsTree: boolean;
@@ -39,23 +40,27 @@ type
 
     procedure SetAsTree(const Value: boolean);
   protected
-    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    procedure Notification(AComponent: TComponent;
+      Operation: TOperation); override;
     procedure DoInitNode(Parent, Node: PVirtualNode;
       var InitStates: TVirtualNodeInitStates); override;
     procedure MenuItemClick(Sender: TObject);
     procedure MenuItemClickGetPeers(Sender: TObject);
-    procedure MyDoGetPopupmenu(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-      const P: TPoint; var AskParent: boolean; var PopupMenu: TPopupMenu);
+    procedure MyDoGetPopupmenu(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex; const P: TPoint; var AskParent: boolean;
+      var PopupMenu: TPopupMenu);
 
     procedure NodeDblClick(Sender: TBaseVirtualTree; const HitInfo: THitInfo);
-    procedure MyDoGetText(Sender: TBaseVirtualTree; Node: PVirtualNode; Column: TColumnIndex;
-      TextType: TVSTTextType; var CellText: string);
+    procedure MyDoGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
     procedure MyDoInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
       var ChildCount: Cardinal);
-    procedure MyDoPaintText(Sender: TBaseVirtualTree; const TargetCanvas: TCanvas;
-      Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
-    procedure MyGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode; Kind: TVTImageKind;
-      Column: TColumnIndex; var Ghosted: boolean; var ImageIndex: TImageIndex);
+    procedure MyDoPaintText(Sender: TBaseVirtualTree;
+      const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+      TextType: TVSTTextType);
+    procedure MyGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
+      Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: boolean;
+      var ImageIndex: TImageIndex);
   public
     constructor Create(Owner: TComponent); override;
 
@@ -65,7 +70,8 @@ type
     // I
     procedure DoNotify(const msgtype: TMSGType; const aNode: INode);
   published
-    property CryptoNetwork: TBTCNetwork read fCryptonetwork write setCryptoNetwork;
+    property CryptoNetwork: TBTCNetwork read fCryptonetwork
+      write setCryptoNetwork;
     property AsTree: boolean write SetAsTree;
   end;
 
@@ -109,7 +115,8 @@ begin
 
   NodeDataSize := SizeOf(TTreeData);
 
-  TreeOptions.SelectionOptions := TreeOptions.SelectionOptions + [toRightClickSelect,
+  TreeOptions.SelectionOptions := TreeOptions.SelectionOptions +
+    [toRightClickSelect,
   // toLevelSelectConstraint,
   tomultiselect, toSiblingSelectConstraint];
 
@@ -123,8 +130,9 @@ begin
   Images := GetGlobalImageListFromResource();
 end;
 
-procedure TCryptoNetworkTreeView.MyDoGetPopupmenu(Sender: TBaseVirtualTree; Node: PVirtualNode;
-  Column: TColumnIndex; const P: TPoint; var AskParent: boolean; var PopupMenu: TPopupMenu);
+procedure TCryptoNetworkTreeView.MyDoGetPopupmenu(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex; const P: TPoint;
+  var AskParent: boolean; var PopupMenu: TPopupMenu);
 var
   data: PTreeData;
 begin
@@ -140,8 +148,9 @@ begin
   end;
 end;
 
-procedure TCryptoNetworkTreeView.MyDoGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
-  Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
+procedure TCryptoNetworkTreeView.MyDoGetText(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType;
+  var CellText: string);
 var
   data: PTreeData;
 
@@ -179,8 +188,8 @@ begin
     end;
 end;
 
-procedure TCryptoNetworkTreeView.MyDoInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
-  var ChildCount: Cardinal);
+procedure TCryptoNetworkTreeView.MyDoInitChildren(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; var ChildCount: Cardinal);
 var
   data: PTreeData;
 begin
@@ -253,7 +262,8 @@ begin
 
 end;
 
-procedure TCryptoNetworkTreeView.DoNotify(const msgtype: TMSGType; const aNode: INode);
+procedure TCryptoNetworkTreeView.DoNotify(const msgtype: TMSGType;
+  const aNode: INode);
 var
   aVirtualNodeEnumerator: TVTVirtualNodeEnumerator;
   data: PTreeData;
@@ -274,7 +284,8 @@ begin
 end;
 
 procedure TCryptoNetworkTreeView.MyDoPaintText(Sender: TBaseVirtualTree;
-  const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex; TextType: TVSTTextType);
+  const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
+  TextType: TVSTTextType);
 var
   data: PTreeData;
 begin
@@ -290,19 +301,22 @@ begin
         if data^.nodedata.Connected then
         begin
           TargetCanvas.Font.Color := clBlack;
-          TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold] - [fsItalic];
+          TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsBold] -
+            [fsItalic];
 
         end
         else if data^.nodedata.serverconnected then
         begin
 
           TargetCanvas.Font.Color := clBlack;
-          TargetCanvas.Font.Style := TargetCanvas.Font.Style - [fsItalic] - [fsBold];
+          TargetCanvas.Font.Style := TargetCanvas.Font.Style - [fsItalic]
+            - [fsBold];
         end
         else
         begin
           TargetCanvas.Font.Color := clGray;
-          TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsItalic] - [fsBold];
+          TargetCanvas.Font.Style := TargetCanvas.Font.Style + [fsItalic]
+            - [fsBold];
         end;
       end;
 
@@ -310,9 +324,9 @@ begin
 
 end;
 
-procedure TCryptoNetworkTreeView.MyGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
-  Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: boolean;
-  var ImageIndex: System.UITypes.TImageIndex);
+procedure TCryptoNetworkTreeView.MyGetImageIndex(Sender: TBaseVirtualTree;
+  Node: PVirtualNode; Kind: TVTImageKind; Column: TColumnIndex;
+  var Ghosted: boolean; var ImageIndex: System.UITypes.TImageIndex);
 var
   data: PTreeData;
 begin
@@ -320,10 +334,26 @@ begin
 
   if (Kind <> ikstate) then
   begin
-    if (data^.node_type = ntroot) and (Column = -1) then
-      ImageIndex := GetGlobalImageListFromResource.GetImageIndexByName('PROJECT')
-    else if (data^.node_type = ntnode) then
-      ImageIndex := GetGlobalImageListFromResource.GetImageIndexByName('NODE_BTC');
+    if fAsTree = true then
+    begin
+      if (data^.node_type = ntroot) and (Column = -1) then
+        ImageIndex := GetGlobalImageListFromResource.GetImageIndexByName
+          ('PROJECT')
+      else if (data^.node_type = ntnode) then
+        ImageIndex := GetGlobalImageListFromResource.GetImageIndexByName
+          ('NODE_BTC');
+    end
+    else
+    begin
+      { if (data^.node_type = ntroot) and (Column = -1) then
+        ImageIndex := GetGlobalImageListFromResource.GetImageIndexByName
+        ('PROJECT')
+        else }
+      if (data^.node_type = ntnode) and (Column = 0) then
+        ImageIndex := GetGlobalImageListFromResource.GetImageIndexByName
+          ('NODE_BTC');
+    end;
+
   end;
 end;
 
@@ -387,7 +417,8 @@ begin
 
 end;
 
-procedure TCryptoNetworkTreeView.NodeDblClick(Sender: TBaseVirtualTree; const HitInfo: THitInfo);
+procedure TCryptoNetworkTreeView.NodeDblClick(Sender: TBaseVirtualTree;
+  const HitInfo: THitInfo);
 var
   aVirtualNodeEnumerator: TVTVirtualNodeEnumerator;
   data: PTreeData;
@@ -418,7 +449,8 @@ begin
 
 end;
 
-procedure TCryptoNetworkTreeView.Notification(AComponent: TComponent; Operation: TOperation);
+procedure TCryptoNetworkTreeView.Notification(AComponent: TComponent;
+  Operation: TOperation);
 begin
   inherited;
 
@@ -434,17 +466,21 @@ begin
   // As Tree
   if Value = true then
   begin
-    TreeOptions.PaintOptions := TreeOptions.PaintOptions + [toShowRoot, toShowTreeLines];
-    TreeOptions.SelectionOptions := TreeOptions.SelectionOptions - [toextendedfocus];
+    TreeOptions.PaintOptions := TreeOptions.PaintOptions +
+      [toShowRoot, toShowTreeLines];
+    TreeOptions.SelectionOptions := TreeOptions.SelectionOptions -
+      [toextendedfocus];
     TreeOptions.MiscOptions := TreeOptions.MiscOptions - [toToggleondblclick];
 
   end
   // as grid
   else
   begin
-    TreeOptions.PaintOptions := TreeOptions.PaintOptions - [toShowRoot, toShowTreeLines] +
-      [toHotTrack, tohidefocusrect, toshowhorzgridlines, toshowvertgridlines];
-    TreeOptions.SelectionOptions := TreeOptions.SelectionOptions + [toFullRowSelect];
+    TreeOptions.PaintOptions := TreeOptions.PaintOptions -
+      [toShowRoot, toShowTreeLines] + [toHotTrack, tohidefocusrect,
+      toshowhorzgridlines, toshowvertgridlines];
+    TreeOptions.SelectionOptions := TreeOptions.SelectionOptions +
+      [toFullRowSelect];
     Header.Options := Header.Options - [hocolumnresize];
     TreeOptions.MiscOptions := TreeOptions.MiscOptions + [toGridExtensions];
   end;

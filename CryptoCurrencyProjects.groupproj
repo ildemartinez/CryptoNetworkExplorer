@@ -3,9 +3,6 @@
         <ProjectGuid>{69BA1B00-42E8-488F-BA12-48DB4A037EE8}</ProjectGuid>
     </PropertyGroup>
     <ItemGroup>
-        <Projects Include="CryptoCurrencyComponents.dproj">
-            <Dependencies/>
-        </Projects>
         <Projects Include="vicyne.dproj">
             <Dependencies/>
         </Projects>
@@ -17,15 +14,6 @@
             <Default.Personality/>
         </BorlandProject>
     </ProjectExtensions>
-    <Target Name="CryptoCurrencyComponents">
-        <MSBuild Projects="CryptoCurrencyComponents.dproj"/>
-    </Target>
-    <Target Name="CryptoCurrencyComponents:Clean">
-        <MSBuild Projects="CryptoCurrencyComponents.dproj" Targets="Clean"/>
-    </Target>
-    <Target Name="CryptoCurrencyComponents:Make">
-        <MSBuild Projects="CryptoCurrencyComponents.dproj" Targets="Make"/>
-    </Target>
     <Target Name="vicyne">
         <MSBuild Projects="vicyne.dproj"/>
     </Target>
@@ -36,13 +24,13 @@
         <MSBuild Projects="vicyne.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="CryptoCurrencyComponents;vicyne"/>
+        <CallTarget Targets="vicyne"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="CryptoCurrencyComponents:Clean;vicyne:Clean"/>
+        <CallTarget Targets="vicyne:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="CryptoCurrencyComponents:Make;vicyne:Make"/>
+        <CallTarget Targets="vicyne:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

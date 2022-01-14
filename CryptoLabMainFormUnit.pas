@@ -17,7 +17,7 @@ uses
   Vcl.AppEvnts,
   BTCPeerDiscoveryUnit,
   BTCTypes,
-  VirtualTrees,
+  //VirtualTrees,
   btcnetworkunit,
   CryptoNetworkTreeViewUnit,
   Data.DB,
