@@ -7,4 +7,4 @@ Some Cryptocurrency component to use in Delphi development and for build Crypto 
 This software uses great SeCrypt lilbrary from https://github.com/dxeoane/secrypt
 
 
-https://ildefonso-martinez.gitbook.io/crypto-network-explorer/
+https://ildemartinez.gitbook.io/crypto-network-explorer/
