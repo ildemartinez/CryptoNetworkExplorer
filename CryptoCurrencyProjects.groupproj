@@ -6,7 +6,7 @@
         <Projects Include="CryptoCurrencyComponents.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="CryptoLab.dproj">
+        <Projects Include="vicyne.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -26,23 +26,23 @@
     <Target Name="CryptoCurrencyComponents:Make">
         <MSBuild Projects="CryptoCurrencyComponents.dproj" Targets="Make"/>
     </Target>
-    <Target Name="CryptoLab">
-        <MSBuild Projects="CryptoLab.dproj"/>
+    <Target Name="vicyne">
+        <MSBuild Projects="vicyne.dproj"/>
     </Target>
-    <Target Name="CryptoLab:Clean">
-        <MSBuild Projects="CryptoLab.dproj" Targets="Clean"/>
+    <Target Name="vicyne:Clean">
+        <MSBuild Projects="vicyne.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="CryptoLab:Make">
-        <MSBuild Projects="CryptoLab.dproj" Targets="Make"/>
+    <Target Name="vicyne:Make">
+        <MSBuild Projects="vicyne.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="CryptoCurrencyComponents;CryptoLab"/>
+        <CallTarget Targets="CryptoCurrencyComponents;vicyne"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="CryptoCurrencyComponents:Clean;CryptoLab:Clean"/>
+        <CallTarget Targets="CryptoCurrencyComponents:Clean;vicyne:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="CryptoCurrencyComponents:Make;CryptoLab:Make"/>
+        <CallTarget Targets="CryptoCurrencyComponents:Make;vicyne:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>

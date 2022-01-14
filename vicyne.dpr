@@ -1,4 +1,4 @@
-program CryptoLab;
+program vicyne;
 
 uses
   Vcl.Forms,
