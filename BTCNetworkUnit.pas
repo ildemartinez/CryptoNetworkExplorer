@@ -16,6 +16,8 @@ type
     fBTCPeerDiscovery: TBTCPeerDiscovery;
     fBTCAgents: Tlist<TBTCPeerNode>;
 
+    fDirectNode: TBTCRPCNode;
+
     function GetMaxPeers: cardinal;
     procedure SetMaxPeers(const Value: cardinal);
 
@@ -26,7 +28,8 @@ type
     fMessageVersionEvent: TMessageEventVersion;
     function getcount: cardinal;
     function GetNodes(index: integer): TBTCPeerNode;
-//    procedure NodeConnected;
+    function GetDirectNode: TBTCPeerNode;
+    // procedure NodeConnected;
 
   public
     procedure AttachToSubject(aINodeSubject: INodeObservable);
@@ -41,6 +44,7 @@ type
 
     procedure connect;
     property Nodes[index: integer]: TBTCPeerNode read GetNodes;
+    property DirectNode: TBTCPeerNode read GetDirectNode;
   published
     property MaxPeers: cardinal read GetMaxPeers write SetMaxPeers;
     property count: cardinal read getcount;
@@ -53,6 +57,10 @@ type
 procedure Register;
 
 implementation
+
+uses
+  sysutils, forms,
+  inifiles;
 
 procedure Register;
 begin
@@ -72,6 +80,11 @@ begin
 end;
 
 constructor TBTCNetwork.Create(Owner: TComponent);
+var
+  aIniFile: TIniFile;
+  aServer, aUser, aPass: string;
+  aPort: integer;
+  aini: string;
 begin
   inherited;
 
@@ -81,6 +94,26 @@ begin
   fBTCPeerDiscovery.OnResponse := OnDiscovered;
 
   fBTCAgents := Tlist<TBTCPeerNode>.Create;
+
+  // Lets check if exists RPC Node in the ini file
+  aini := ExtractFilePath(Application.ExeName) + 'config.ini';
+  aIniFile := TIniFile.Create(aini);
+  aServer := aIniFile.ReadString('RPCBTCNODE', 'rpcbind', '');
+  aUser := aIniFile.ReadString('RPCBTCNODE', 'rpcuser', '');
+  aPass := aIniFile.ReadString('RPCBTCNODE', 'rpcpassword', '');
+  aPort := aIniFile.ReadInteger('RPCBTCNODE', 'rpcport', 8332);
+
+  // If exists create a default connection node
+  fDirectNode := TBTCRPCNode.Create(self);
+
+  fDirectNode.PeerIp := aServer;
+  fDirectNode.rpcuser := aUser;
+  fDirectNode.rpcpassword := aPass;
+  fDirectNode.rpcport := aPort;
+
+  fBTCAgents.add(fDirectNode);
+  NotifyNewBTCAgent(fDirectNode);
+  // fDirectNode.Connect;
 end;
 
 destructor TBTCNetwork.Destroy;
@@ -95,8 +128,7 @@ begin
   inherited;
 end;
 
-procedure TBTCNetwork.DoNotify(const msgtype: TMSGType;
-  const aNode: INode);
+procedure TBTCNetwork.DoNotify(const msgtype: TMSGType; const aNode: INode);
 begin
 
 end;
@@ -113,6 +145,11 @@ begin
   result := fBTCAgents.count;
 end;
 
+function TBTCNetwork.GetDirectNode: TBTCPeerNode;
+begin
+  result := fDirectNode;
+end;
+
 function TBTCNetwork.GetMaxPeers: cardinal;
 begin
   result := fBTCPeerDiscovery.MaxPeers;
@@ -122,7 +159,6 @@ function TBTCNetwork.GetNodes(index: integer): TBTCPeerNode;
 begin
   result := self.fBTCAgents[index];
 end;
-
 
 procedure TBTCNetwork.NotifyNewBTCAgent(const aBTCAgent: TBTCPeerNode);
 var
@@ -167,10 +203,10 @@ begin
     aBTCAgent.OnVersionMessage := DoVersionMessage;
     aBTCAgent.PeerIp := Peer;
 
-    AttachObserverToSubject(self,aBTCAgent);
-//    aBTCAgent.NodeSubject.RegisterObserver(self);
+    AttachObserverToSubject(self, aBTCAgent);
+    // aBTCAgent.NodeSubject.RegisterObserver(self);
 
-    fBTCAgents.Add(aBTCAgent);
+    fBTCAgents.add(aBTCAgent);
 
     NotifyNewBTCAgent(aBTCAgent);
 
@@ -181,7 +217,7 @@ end;
 procedure TBTCNetwork.RegisterObserver(aObserver: INetworkObserver);
 begin
   if fObserverList.IndexOf(aObserver) < 0 then
-    fObserverList.Add(aObserver);
+    fObserverList.add(aObserver);
 end;
 
 procedure TBTCNetwork.SetMaxPeers(const Value: cardinal);

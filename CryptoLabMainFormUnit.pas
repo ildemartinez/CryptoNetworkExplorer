@@ -17,7 +17,7 @@ uses
   Vcl.AppEvnts,
   BTCPeerDiscoveryUnit,
   BTCTypes,
-  //VirtualTrees,
+  // VirtualTrees,
   btcnetworkunit,
   CryptoNetworkTreeViewUnit,
   Data.DB,
@@ -32,7 +32,8 @@ uses
   Vcl.ActnCtrls,
   Vcl.ActnMenus,
   System.ImageList,
-  Vcl.ImgList;
+  Vcl.ImgList, IdBaseComponent, IdComponent, IdTCPConnection, IdTCPClient,
+  IdHTTP;
 
 type
   TForm1 = class(TForm)
@@ -62,6 +63,9 @@ var
   Form1: TForm1;
 
 implementation
+
+uses
+    rpc;
 
 {$R *.dfm}
 
@@ -97,7 +101,8 @@ begin
   inherited;
 end;
 
-procedure TForm1.OnVersionMessge(Sender: TObject; versionMessage: TVersionMessage);
+procedure TForm1.OnVersionMessge(Sender: TObject;
+  versionMessage: TVersionMessage);
 begin
   { *Memo1.Lines.add('version :' + versionMessage.protocol_version.ToString);
     Memo1.Lines.add('NodeServices :' + versionMessage.node_services.ToString);

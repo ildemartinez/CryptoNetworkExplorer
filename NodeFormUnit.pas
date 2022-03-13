@@ -21,6 +21,8 @@ uses
 type
   TNodeForm = class(TForm, INodeObserver)
     Label1: TLabel;
+    Button1: TButton;
+    procedure Button1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     fPeerNode: TPeerNode;
@@ -47,6 +49,15 @@ begin
   // nos unregistramos
   DeattachObserverFromSubject(self, fPeerNode);
   inherited;
+end;
+
+procedure TNodeForm.Button1Click(Sender: TObject);
+begin
+  if fPeerNode is TBTCRPCNode then
+  begin
+    Caption :=  TBTCRPCNode(fPeerNode).fRPC.GetNetworkInfo.version;
+  end;
+
 end;
 
 procedure TNodeForm.DoNotify(const msgtype: TMSGType; const aNode: INode);

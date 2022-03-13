@@ -13,11 +13,12 @@ uses
   ipwtypes,
   ipwipport,
   btctypes,
-  SeSHA256;
+  SeSHA256, RPC;
 
 type
 
-  TMessageEventVersion = procedure(Sender: TObject; versionMessage: TVersionMessage) of object;
+  TMessageEventVersion = procedure(Sender: TObject;
+    versionMessage: TVersionMessage) of object;
   TMessageEventVerack = procedure(Sender: TObject) of object;
 
   TMessageEvent = procedure(Sender: TObject; const aMessage: string) of Object;
@@ -33,14 +34,18 @@ type
     fMessageVersionEvent: TMessageEventVersion;
     fMessageVerackEvent: TMessageEventVerack;
 
-    procedure Connected(Sender: TObject; StatusCode: Integer; const Description: String);
-    procedure DataIn(Sender: TObject; Text: String; TextB: TBytes; EOL: boolean);
-    procedure ConnectionStatus(Sender: TObject; const ConnectionEvent: string; StatusCode: Integer;
-      const Description: string);
+    procedure Connected(Sender: TObject; StatusCode: Integer;
+      const Description: String);
+    procedure DataIn(Sender: TObject; Text: String; TextB: TBytes;
+      EOL: boolean);
+    procedure ConnectionStatus(Sender: TObject; const ConnectionEvent: string;
+      StatusCode: Integer; const Description: string);
     procedure ReadyToSend(Sender: TObject);
-    procedure Error(Sender: TObject; ErrorCode: Integer; const Description: string);
+    procedure Error(Sender: TObject; ErrorCode: Integer;
+      const Description: string);
 
-    procedure DoMessageDetected(const aMessageType: string; const apayload: TBytes);
+    procedure DoMessageDetected(const aMessageType: string;
+      const apayload: TBytes);
 
     procedure VerackMessage(Sender: TObject);
 
@@ -51,7 +56,7 @@ type
     constructor Create(OWner: TComponent); override;
     destructor Destroy; override;
 
-    procedure Connect;
+    procedure Connect; virtual;
     procedure Disconnect;
 
     procedure GetPeers(); override;
@@ -65,6 +70,29 @@ type
     property OnVerackMessage: TMessageEventVerack read fMessageVerackEvent
       write fMessageVerackEvent;
     // property PeeerDiscovery : TBTCPeerDiscovery read fBTCPeerDiscovery write fBTCPeerDiscovery;
+  end;
+
+  TBTCRPCNode = class(TBTCPeerNode)
+  private
+
+    function GetRPCPassword: string;
+    function GetRPCUser: string;
+    procedure SetRPCPassword(const Value: string);
+    procedure SetRPCUser(const Value: string);
+  public
+    // TODO hide to private ->
+    fRPC: TBCN;
+
+    // TODO refactor to properties
+    rpcport: Integer;
+
+    constructor Create(OWner: TComponent); override;
+    destructor Destroy; override;
+
+    procedure Connect; override;
+
+    property rpcuser: string read GetRPCUser write SetRPCUser;
+    property rpcpassword: string read GetRPCPassword write SetRPCPassword;
   end;
 
 procedure Register;
@@ -96,15 +124,17 @@ begin
     fipwIPPort1.Connect(PeerIp, 8333);
 end;
 
-procedure TBTCPeerNode.Connected(Sender: TObject; StatusCode: Integer; const Description: String);
+procedure TBTCPeerNode.Connected(Sender: TObject; StatusCode: Integer;
+  const Description: String);
 begin
   fServerConnected := true;
 
   ImplNodeObsevable.Notify(msgtserverconnected, self)
 end;
 
-procedure TBTCPeerNode.ConnectionStatus(Sender: TObject; const ConnectionEvent: string;
-  StatusCode: Integer; const Description: string);
+procedure TBTCPeerNode.ConnectionStatus(Sender: TObject;
+  const ConnectionEvent: string; StatusCode: Integer;
+  const Description: string);
 begin
 
 end;
@@ -125,13 +155,14 @@ begin
   // aBTCThreadMonitor :=  TBTCThreadMonitor.Create(fIp,self);
 end;
 
-procedure TBTCPeerNode.DataIn(Sender: TObject; Text: String; TextB: TBytes; EOL: boolean);
+procedure TBTCPeerNode.DataIn(Sender: TObject; Text: String; TextB: TBytes;
+  EOL: boolean);
 var
   k, j: Integer;
   status: Integer;
   aMessage: string;
-  alength : cardinal;
-//  checksum: cardinal;
+  alength: cardinal;
+  // checksum: cardinal;
   payload: TBytes;
 begin
 
@@ -238,7 +269,8 @@ begin
 
 end;
 
-procedure TBTCPeerNode.DoMessageDetected(const aMessageType: string; const apayload: TBytes);
+procedure TBTCPeerNode.DoMessageDetected(const aMessageType: string;
+  const apayload: TBytes);
 var
   versionMessage: TVersionRawMessage;
   pversionMessage: ^TVersionRawMessage;
@@ -257,15 +289,18 @@ begin
       (unixtodatetime(UInt64(versionMessage.node_timestamp)));
 
     aVersionMessage.receiving_node_ip := '....';
-    aVersionMessage.receiving_node_port := swap(versionMessage.receiving_node_port);
+    aVersionMessage.receiving_node_port :=
+      swap(versionMessage.receiving_node_port);
 
     aVersionMessage.emmiting_node_ip := '..-..';
-    aVersionMessage.emmiting_node_port := swap(versionMessage.emmiting_node_port);
+    aVersionMessage.emmiting_node_port :=
+      swap(versionMessage.emmiting_node_port);
 
     // get User Agent
     aVersionMessage.user_agent := '';
     for k := 1 to versionMessage.user_agent[0] do
-      aVersionMessage.user_agent := aVersionMessage.user_agent + char(versionMessage.user_agent[k]);
+      aVersionMessage.user_agent := aVersionMessage.user_agent +
+        char(versionMessage.user_agent[k]);
     fUserAgent := aVersionMessage.user_agent;
 
     if assigned(fMessageVersionEvent) then
@@ -286,7 +321,8 @@ begin
     fMessage(self, aMessageType);
 end;
 
-procedure TBTCPeerNode.Error(Sender: TObject; ErrorCode: Integer; const Description: string);
+procedure TBTCPeerNode.Error(Sender: TObject; ErrorCode: Integer;
+  const Description: string);
 begin
 
 end;
@@ -303,7 +339,7 @@ procedure TBTCPeerNode.ReadyToSend(Sender: TObject);
 begin
   SendMessage('version', StringBytesToTBytes( //
     '80110100' + // version
-//    '0804000000000000' + // services
+    // '0804000000000000' + // services
     '0004000000000000' + // services
     '0defbc6100000000' + //
     '090400000000000000000000000000000000ffff23c121bf208d' + // addr_recv
@@ -336,7 +372,8 @@ begin
   fipwIPPort1.send(tb);
 end;
 
-procedure TBTCPeerNode.SendMessage(const messagename: ansistring; const payload: TBytes);
+procedure TBTCPeerNode.SendMessage(const messagename: ansistring;
+  const payload: TBytes);
 var
   tb: TBytes;
   aHeader: TBTCHeader;
@@ -378,6 +415,50 @@ end;
 procedure TBTCPeerNode.VerackMessage(Sender: TObject);
 begin
   fConnected := true;
+end;
+
+{ TBTCRPCNode }
+
+procedure TBTCRPCNode.Connect;
+begin
+  fServerConnected := true;
+
+  ImplNodeObsevable.Notify(msgtserverconnected, self);
+end;
+
+constructor TBTCRPCNode.Create(OWner: TComponent);
+
+// aetWorkInfoRecord: TNetWorkInfoRecord;
+begin
+  inherited;
+
+  fRPC := TBCN.Create(self);
+end;
+
+destructor TBTCRPCNode.Destroy;
+begin
+
+  inherited;
+end;
+
+function TBTCRPCNode.GetRPCPassword: string;
+begin
+  result := fRPC.rpcpassword;
+end;
+
+function TBTCRPCNode.GetRPCUser: string;
+begin
+  result := fRPC.rpcuser;
+end;
+
+procedure TBTCRPCNode.SetRPCPassword(const Value: string);
+begin
+  fRPC.rpcpassword := Value;
+end;
+
+procedure TBTCRPCNode.SetRPCUser(const Value: string);
+begin
+  fRPC.rpcuser := Value;
 end;
 
 end.
