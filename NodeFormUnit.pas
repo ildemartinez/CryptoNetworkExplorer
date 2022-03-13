@@ -83,7 +83,6 @@ begin
 
   if Value <> nil then
   begin
-
     AttachObserverToSubject(self, Value);
     caption := Value.PeerIp;
     Label1.caption := Value.agent;

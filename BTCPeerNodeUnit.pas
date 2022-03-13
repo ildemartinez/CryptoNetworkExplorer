@@ -421,14 +421,14 @@ end;
 
 procedure TBTCRPCNode.Connect;
 begin
+  fUserAgent := fRPC.GetNetworkInfo.subversion;
+
   fServerConnected := true;
 
   ImplNodeObsevable.Notify(msgtserverconnected, self);
 end;
 
 constructor TBTCRPCNode.Create(OWner: TComponent);
-
-// aetWorkInfoRecord: TNetWorkInfoRecord;
 begin
   inherited;
 
