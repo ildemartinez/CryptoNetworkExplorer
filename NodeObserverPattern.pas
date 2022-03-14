@@ -18,21 +18,19 @@ type
 
   INodeObservable = interface
     ['{1ECE5AAA-F65E-4BF8-8527-75185C73A1D5}']
+    procedure Notify(const msgtype: TMSGType; aNode: INode);
     procedure RegisterObserver(aObserver: INodeObserver);
     procedure UnregisterObserver(aObserver: INodeObserver);
-    procedure Notify(const msgtype: TMSGType; aNode: INode);
   end;
 
   TNodeObservable = class(TInterfacedObject, INodeObservable)
   private
     fObserverList: Tlist<INodeObserver>;
-
   public
     destructor Destroy; override;
+    procedure Notify(const msgtype: TMSGType; aNode: INode);
     procedure RegisterObserver(aObserver: INodeObserver);
     procedure UnregisterObserver(aObserver: INodeObserver);
-
-    procedure Notify(const msgtype: TMSGType; aNode: INode);
   end;
 
 procedure AttachObserverToSubject(aObserver: INodeObserver; aSubject: INodeObservable);

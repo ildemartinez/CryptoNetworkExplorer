@@ -10,41 +10,29 @@ uses
 type
   TPeerNode = class(TComponent, INode, INodeObservable)
   strict private
-    fIP: string;
-
     fImplNodeObsevable: TNodeObservable;
-
+    fIP: string;
+    function GetAgent: string;
     function GetIP: string;
     procedure SetPeerIP(const Value: string);
-  strict private
-    function GetAgent: string;
   protected
-    fServerConnected: boolean;
     fConnected: boolean;
-
-    property ImplNodeObsevable: TNodeObservable read fImplNodeObsevable write fImplNodeObsevable
-      implements INodeObservable;
-  protected
+    fServerConnected: boolean;
     fUserAgent: string;
-
     procedure GetPeers(); virtual;
+    property ImplNodeObsevable: TNodeObservable
+      read fImplNodeObsevable write fImplNodeObsevable
+      implements INodeObservable;
   public
     constructor Create(Owner: TComponent); override;
-
-    function ServerConnected: boolean;
     function Connected: boolean;
-
+    function ServerConnected: boolean;
   published
-    property PeerIp: string read GetIP write SetPeerIP;
     property Agent: string read GetAgent;
+    property PeerIp: string read GetIP write SetPeerIP;
   end;
 
 implementation
-
-function TPeerNode.Connected: boolean;
-begin
-  result := fConnected;
-end;
 
 constructor TPeerNode.Create(Owner: TComponent);
 begin
@@ -55,6 +43,11 @@ begin
   fUserAgent := '';
 
   fImplNodeObsevable := TNodeObservable.Create;
+end;
+
+function TPeerNode.Connected: boolean;
+begin
+  result := fConnected;
 end;
 
 function TPeerNode.GetAgent: string;

@@ -15,10 +15,10 @@ type
 
   ISubject = interface
     ['{ADFAD0D5-EE82-4A82-8305-3896AD218D51}']
-    procedure RegisterObserver(aObserver: INetworkObserver);
     // procedure UnRegisterObserver(aObserver : IObserver);
     procedure NotifyNewBTCAgent(const aBTCAgent: TBTCPeerNode);
     procedure NotifyNodeConnected(const aBTCAgent: TBTCPeerNode);
+    procedure RegisterObserver(aObserver: INetworkObserver);
   end;
 
 implementation

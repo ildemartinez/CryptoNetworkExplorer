@@ -32,16 +32,12 @@ type
   TCryptoNetworkTreeView = class(TCustomVirtualStringTree, INetworkObserver,
     INodeObserver)
   private
-    fCryptonetwork: TBTCNetwork;
     fAsTree: boolean;
-
+    fCryptonetwork: TBTCNetwork;
+    procedure SetAsTree(const Value: boolean);
     // fPopupMenu: TCryptoNetworkPopupMenu;
     procedure setCryptoNetwork(const Value: TBTCNetwork);
-
-    procedure SetAsTree(const Value: boolean);
   protected
-    procedure Notification(AComponent: TComponent;
-      Operation: TOperation); override;
     procedure DoInitNode(Parent, Node: PVirtualNode;
       var InitStates: TVirtualNodeInitStates); override;
     procedure MenuItemClick(Sender: TObject);
@@ -49,8 +45,6 @@ type
     procedure MyDoGetPopupmenu(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; const P: TPoint; var AskParent: boolean;
       var PopupMenu: TPopupMenu);
-
-    procedure NodeDblClick(Sender: TBaseVirtualTree; const HitInfo: THitInfo);
     procedure MyDoGetText(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Column: TColumnIndex; TextType: TVSTTextType; var CellText: string);
     procedure MyDoInitChildren(Sender: TBaseVirtualTree; Node: PVirtualNode;
@@ -61,18 +55,20 @@ type
     procedure MyGetImageIndex(Sender: TBaseVirtualTree; Node: PVirtualNode;
       Kind: TVTImageKind; Column: TColumnIndex; var Ghosted: boolean;
       var ImageIndex: TImageIndex);
+    procedure NodeDblClick(Sender: TBaseVirtualTree; const HitInfo: THitInfo);
+    procedure Notification(AComponent: TComponent;
+      Operation: TOperation); override;
   public
     constructor Create(Owner: TComponent); override;
-
+    // I
+    procedure DoNotify(const msgtype: TMSGType; const aNode: INode);
     // I
     procedure NewBTCAgentAdded(aBTCAgent: TBTCPeerNode);
     procedure NodeConnected(aBTCAgent: TBTCPeerNode);
-    // I
-    procedure DoNotify(const msgtype: TMSGType; const aNode: INode);
   published
+    property AsTree: boolean write SetAsTree;
     property CryptoNetwork: TBTCNetwork read fCryptonetwork
       write setCryptoNetwork;
-    property AsTree: boolean write SetAsTree;
   end;
 
 procedure Register;
@@ -128,6 +124,114 @@ begin
   OnGetImageIndex := MyGetImageIndex;
 
   Images := GetGlobalImageListFromResource();
+end;
+
+procedure TCryptoNetworkTreeView.DoInitNode(Parent, Node: PVirtualNode;
+  var InitStates: TVirtualNodeInitStates);
+var
+  data, parentdata: PTreeData;
+begin
+  data := GetNodeData(Node);
+  parentdata := GetNodeData(Parent);
+
+  if fAsTree then
+  begin
+    if parentdata = nil then
+    begin
+      data^.node_type := ntroot;
+      Node.States := Node.States + [vsHasChildren, vsExpanded];
+    end
+    else
+      case parentdata^.node_type of
+        ntroot:
+          begin
+            data^.node_type := ntnetwork;
+            data^.networkdata := self.fCryptonetwork;
+            Node.States := Node.States + [vsHasChildren, vsExpanded];
+          end;
+        ntnetwork:
+          begin
+            data^.node_type := ntnode;
+            data^.nodedata := CryptoNetwork.nodes[Node.Index];
+            AttachObserverToSubject(self, CryptoNetwork.nodes[Node.Index]);
+          end;
+      end;
+  end
+  else
+  begin
+    if parentdata = nil then
+    begin
+      RootNodeCount := self.fCryptonetwork.count;
+
+      if RootNodeCount > 0 then
+      begin
+        data^.node_type := ntnode;
+        data^.nodedata := CryptoNetwork.nodes[Node.Index];
+        AttachObserverToSubject(self, CryptoNetwork.nodes[Node.Index]);
+      end;
+    end
+  end;
+
+end;
+
+procedure TCryptoNetworkTreeView.DoNotify(const msgtype: TMSGType;
+  const aNode: INode);
+var
+  aVirtualNodeEnumerator: TVTVirtualNodeEnumerator;
+  data: PTreeData;
+begin
+  // todo optimizar la salida
+  aVirtualNodeEnumerator := nodes.GetEnumerator;
+
+  while aVirtualNodeEnumerator.MoveNext do
+  begin
+    data := GetNodeData(aVirtualNodeEnumerator.Current);
+    if data^.node_type = ntnode then
+    begin
+      if data^.nodedata.PeerIp = aNode.GetIP then
+        InvalidateNode(aVirtualNodeEnumerator.Current)
+    end;
+  end;
+
+end;
+
+procedure TCryptoNetworkTreeView.MenuItemClick(Sender: TObject);
+var
+  aVirtualNodeEnumerator: TVTVirtualNodeEnumerator;
+  data: PTreeData;
+begin
+  aVirtualNodeEnumerator := SelectedNodes.GetEnumerator;
+
+  while aVirtualNodeEnumerator.MoveNext do
+  begin
+    data := GetNodeData(aVirtualNodeEnumerator.Current);
+    if data^.node_type = ntnode then
+    begin
+      data^.nodedata.Connect();
+    end
+    else if data^.node_type = ntnetwork then
+    begin
+      data^.networkdata.Connect;
+    end
+  end;
+end;
+
+procedure TCryptoNetworkTreeView.MenuItemClickGetPeers(Sender: TObject);
+var
+  aVirtualNodeEnumerator: TVTVirtualNodeEnumerator;
+  data: PTreeData;
+begin
+  aVirtualNodeEnumerator := SelectedNodes.GetEnumerator;
+
+  while aVirtualNodeEnumerator.MoveNext do
+  begin
+    data := GetNodeData(aVirtualNodeEnumerator.Current);
+    if data^.node_type = ntnode then
+    begin
+      data^.nodedata.GetPeers();
+    end
+  end;
+
 end;
 
 procedure TCryptoNetworkTreeView.MyDoGetPopupmenu(Sender: TBaseVirtualTree;
@@ -214,75 +318,6 @@ begin
   end;
 end;
 
-procedure TCryptoNetworkTreeView.DoInitNode(Parent, Node: PVirtualNode;
-  var InitStates: TVirtualNodeInitStates);
-var
-  data, parentdata: PTreeData;
-begin
-  data := GetNodeData(Node);
-  parentdata := GetNodeData(Parent);
-
-  if fAsTree then
-  begin
-    if parentdata = nil then
-    begin
-      data^.node_type := ntroot;
-      Node.States := Node.States + [vsHasChildren, vsExpanded];
-    end
-    else
-      case parentdata^.node_type of
-        ntroot:
-          begin
-            data^.node_type := ntnetwork;
-            data^.networkdata := self.fCryptonetwork;
-            Node.States := Node.States + [vsHasChildren, vsExpanded];
-          end;
-        ntnetwork:
-          begin
-            data^.node_type := ntnode;
-            data^.nodedata := CryptoNetwork.nodes[Node.Index];
-            AttachObserverToSubject(self, CryptoNetwork.nodes[Node.Index]);
-          end;
-      end;
-  end
-  else
-  begin
-    if parentdata = nil then
-    begin
-      RootNodeCount := self.fCryptonetwork.count;
-
-      if RootNodeCount > 0 then
-      begin
-        data^.node_type := ntnode;
-        data^.nodedata := CryptoNetwork.nodes[Node.Index];
-        AttachObserverToSubject(self, CryptoNetwork.nodes[Node.Index]);
-      end;
-    end
-  end;
-
-end;
-
-procedure TCryptoNetworkTreeView.DoNotify(const msgtype: TMSGType;
-  const aNode: INode);
-var
-  aVirtualNodeEnumerator: TVTVirtualNodeEnumerator;
-  data: PTreeData;
-begin
-  // todo optimizar la salida
-  aVirtualNodeEnumerator := nodes.GetEnumerator;
-
-  while aVirtualNodeEnumerator.MoveNext do
-  begin
-    data := GetNodeData(aVirtualNodeEnumerator.Current);
-    if data^.node_type = ntnode then
-    begin
-      if data^.nodedata.PeerIp = aNode.GetIP then
-        InvalidateNode(aVirtualNodeEnumerator.Current)
-    end;
-  end;
-
-end;
-
 procedure TCryptoNetworkTreeView.MyDoPaintText(Sender: TBaseVirtualTree;
   const TargetCanvas: TCanvas; Node: PVirtualNode; Column: TColumnIndex;
   TextType: TVSTTextType);
@@ -355,45 +390,6 @@ begin
     end;
 
   end;
-end;
-
-procedure TCryptoNetworkTreeView.MenuItemClick(Sender: TObject);
-var
-  aVirtualNodeEnumerator: TVTVirtualNodeEnumerator;
-  data: PTreeData;
-begin
-  aVirtualNodeEnumerator := SelectedNodes.GetEnumerator;
-
-  while aVirtualNodeEnumerator.MoveNext do
-  begin
-    data := GetNodeData(aVirtualNodeEnumerator.Current);
-    if data^.node_type = ntnode then
-    begin
-      data^.nodedata.Connect();
-    end
-    else if data^.node_type = ntnetwork then
-    begin
-      data^.networkdata.Connect;
-    end
-  end;
-end;
-
-procedure TCryptoNetworkTreeView.MenuItemClickGetPeers(Sender: TObject);
-var
-  aVirtualNodeEnumerator: TVTVirtualNodeEnumerator;
-  data: PTreeData;
-begin
-  aVirtualNodeEnumerator := SelectedNodes.GetEnumerator;
-
-  while aVirtualNodeEnumerator.MoveNext do
-  begin
-    data := GetNodeData(aVirtualNodeEnumerator.Current);
-    if data^.node_type = ntnode then
-    begin
-      data^.nodedata.GetPeers();
-    end
-  end;
-
 end;
 
 procedure TCryptoNetworkTreeView.NewBTCAgentAdded(aBTCAgent: TBTCPeerNode);

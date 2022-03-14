@@ -16,12 +16,24 @@ uses
   NodeObserverPattern,
   Vcl.StdCtrls,
   PeerNodeUnit,
-  IPeerNodeUnit;
+  IPeerNodeUnit, Vcl.ComCtrls, System.Actions, Vcl.ActnList,
+  Vcl.PlatformDefaultStyleActnCtrls, Vcl.ActnMan, Vcl.ToolWin, Vcl.ActnCtrls,
+  Vcl.ActnMenus;
 
 type
   TNodeForm = class(TForm, INodeObserver)
+    TabSheet11: TPageControl;
+    TabSheet1: TTabSheet;
+    Peers: TTabSheet;
     Label1: TLabel;
     Button1: TButton;
+    ActionMainMenuBar1: TActionMainMenuBar;
+    ActionManager1: TActionManager;
+    actGetPeers: TAction;
+    Action2: TAction;
+    ActionMainMenuBar2: TActionMainMenuBar;
+    Memo1: TMemo;
+    procedure actGetPeersExecute(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
@@ -51,11 +63,21 @@ begin
   inherited;
 end;
 
+procedure TNodeForm.actGetPeersExecute(Sender: TObject);
+begin
+     if fPeerNode is TBTCRPCNode then
+  begin
+//    Caption :=  TBTCRPCNode(fPeerNode).fRPC.GetNetworkInfo.version;
+   Memo1.Lines.Add(TBTCRPCNode(fPeerNode).fRPC.GetPeerInfo.json);
+  end;
+end;
+
 procedure TNodeForm.Button1Click(Sender: TObject);
 begin
   if fPeerNode is TBTCRPCNode then
   begin
-    Caption :=  TBTCRPCNode(fPeerNode).fRPC.GetNetworkInfo.version;
+//    Caption :=  TBTCRPCNode(fPeerNode).fRPC.GetNetworkInfo.version;
+ //   Memo1.Lines.Add(TBTCRPCNode(fPeerNode).fRPC.GetNetworkInfo.json)
   end;
 
 end;

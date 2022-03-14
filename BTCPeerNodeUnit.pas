@@ -89,6 +89,8 @@ type
     constructor Create(OWner: TComponent); override;
     destructor Destroy; override;
 
+    procedure GetPeers(); override;
+
     procedure Connect; override;
 
     property rpcuser: string read GetRPCUser write SetRPCUser;
@@ -439,6 +441,13 @@ destructor TBTCRPCNode.Destroy;
 begin
 
   inherited;
+end;
+
+procedure TBTCRPCNode.GetPeers;
+begin
+  //inherited;
+
+ // self.fRPC.
 end;
 
 function TBTCRPCNode.GetRPCPassword: string;

@@ -35,6 +35,7 @@ type
   end;
 
   TNetWorkInfoRecord = record
+    json: string;
     version: string;
     subversion: string;
     protocolversion: string;
@@ -44,6 +45,10 @@ type
     connections: string;
     relayfee: string;
     warnings: string;
+  end;
+
+  TGetPeerInfoRecord = record
+    json : string;
   end;
 
   TBlock = class(TObject)
@@ -106,12 +111,13 @@ type
     function GetDifficulty: string;
     function GetNetworkInfo: TNetWorkInfoRecord;
     function GetBlockCount: int64;
+    function GetPeerInfo : TGetPeerInfoRecord;
 
     function GetRawTransaction(const atx: string): string;
     function GetTransaction(const atx: string): TTransaction;
 
-    property rpcuser : string read GetRPCUser write SetRPCUser;
-    property rpcpassword : string read GetRPCPassword write SetRPCPassword;
+    property rpcuser: string read GetRPCUser write SetRPCUser;
+    property rpcpassword: string read GetRPCPassword write SetRPCPassword;
 
     property OnReady: TNotifyEvent read fOnReady write fOnReady;
     property OnNewBlock: TNewBlockEvent read fOnNewBlock write fOnNewBlock;
@@ -175,17 +181,17 @@ begin
   aHTTP := TIdHTTP.Create(self);
   aHTTP.Request.BasicAuthentication := true;
 
- // fBlockThread := TBlockThread.Create(self, true);
+  // fBlockThread := TBlockThread.Create(self, true);
 end;
 
 destructor TBCN.Destroy;
 begin
 
- // fBlockThread.Terminate;
+  // fBlockThread.Terminate;
 
- // while not fBlockThread.Terminated do;
+  // while not fBlockThread.Terminated do;
 
- // fBlockThread.free;
+  // fBlockThread.free;
 
   aHTTP.free;
   inherited;
@@ -263,6 +269,7 @@ begin
   fJSON := TJsonobject.Create;
   if fJSON.Parse(BytesOf(ajson), 0) > 0 then
   begin
+    result.json := fJSON.ToString;
     aa := fJSON.GetValue('result');
     result.version := aa.GetValue<string>('version');
     result.subversion := aa.GetValue<string>('subversion');
@@ -278,6 +285,26 @@ begin
   fJSON.free;
 end;
 
+function TBCN.GetPeerInfo: TGetPeerInfoRecord;
+var
+  ajson: string;
+  aa: tjsonvalue;
+begin
+  ajson := post
+    ('{"jsonrpc": "1.0", "id":"BTCExposed", "method": "getpeerinfo", "params": [] }');
+
+  fJSON := TJsonobject.Create;
+  if fJSON.Parse(BytesOf(ajson), 0) > 0 then
+  begin
+    result.json := fJSON.ToString;
+    aa := fJSON.GetValue('result');
+
+  end;
+
+  fJSON.free;
+
+end;
+
 function TBCN.GetResultFromJSON(const ajson: string): string;
 begin
   fJSON := TJsonobject.Create;
@@ -288,7 +315,7 @@ end;
 
 function TBCN.GetRPCPassword: string;
 begin
-result := aHTTP.Request.Password;
+  result := aHTTP.Request.Password;
 end;
 
 function TBCN.GetRPCUser: string;
@@ -339,12 +366,12 @@ end;
 
 procedure TBCN.SetRPCPassword(const Value: string);
 begin
-  aHTTP.Request.Password := value;
+  aHTTP.Request.Password := Value;
 end;
 
 procedure TBCN.SetRPCUser(const Value: string);
 begin
-  aHTTP.Request.Username := value;
+  aHTTP.Request.Username := Value;
 end;
 
 procedure TBCN.Start;
@@ -482,7 +509,8 @@ begin
   FDCommand.CommandText.Clear;
   FDCommand.CommandText.Add
     (format('insert into blocks (height, hash, time, mediantime) values (%d,"%s",%d, %d)',
-    [aBlock.height, aBlock.hash,DateTimeToUnix(aBlock.time),DateTimeToUnix(aBlock.mediantime)]));
+    [aBlock.height, aBlock.hash, DateTimeToUnix(aBlock.time),
+    DateTimeToUnix(aBlock.mediantime)]));
   FDCommand.Execute;
 end;
 

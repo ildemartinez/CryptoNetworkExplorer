@@ -15,7 +15,6 @@ type
   public
     constructor Create(Onwer: TComponent); override;
     destructor Destroy; override;
-
     function GetImageIndexByName(const aImageName: String): integer;
   end;
 
